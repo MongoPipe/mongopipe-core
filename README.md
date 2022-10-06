@@ -1,0 +1,2 @@
+# mongopipe-core
+Core functions
