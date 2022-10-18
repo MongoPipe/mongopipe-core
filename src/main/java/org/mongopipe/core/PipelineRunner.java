@@ -88,6 +88,7 @@ public class PipelineRunner {
       //Document.parse(rawPipeline);
       // https://splunktool.com/jsonparse-equivalent-in-mongo-driver-3x-for-java
       // https://stackoverflow.com/questions/34436952/json-parse-equivalent-in-mongo-driver-3-x-for-java
+      // TODO: Move in separate BsonUtils.
       final CodecRegistry codecRegistry = CodecRegistries.fromProviders(Arrays.asList(new BsonValueCodecProvider()));
       JsonReader reader = new JsonReader(rawPipeline);
       BsonArrayCodec arrayReader = new BsonArrayCodec(codecRegistry);

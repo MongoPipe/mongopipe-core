@@ -54,13 +54,13 @@ public class PipelineRepositoryInvocationHandler implements InvocationHandler {
       }
     }
     Map<String, Serializable> params = new HashMap<>();
-    int i = 0;
+    int argsIndex = 0;
     for (Parameter parameter : method.getParameters()) {
       if (!parameter.isAnnotationPresent(Param.class)) {
         throw new MissingPipelineParamAnnotationException("@Param annotation missing on method:" + method.getName() + " and parameter:"
             + parameter.getName());
       }
-      params.put(parameter.getAnnotation(Param.class).value(), (Serializable) args[i++]);
+      params.put(parameter.getAnnotation(Param.class).value(), (Serializable) args[argsIndex++]);
     }
     String pipelineId = method.getAnnotation(Pipeline.class).value();
 

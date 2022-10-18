@@ -31,7 +31,7 @@ public class Maps {
     }
     Map map = new HashMap();
     for (int i = 0; i< keyValuesPairs.length; i++) {
-      if (keyValuesPairs[i] != null && !(keyValuesPairs[i] instanceof String)) {
+      if (!(keyValuesPairs[i] instanceof String)) {
         throw new RuntimeException("Param map key must be a String");
       }
       map.put(keyValuesPairs[i], keyValuesPairs[++i]);
