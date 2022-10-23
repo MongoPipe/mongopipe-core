@@ -1,0 +1,12 @@
+{
+  "_id": "matchingPizzasByPrice",
+  "collection": "pizzaCollection",
+  "pipeline": [
+    {
+      "$match": {
+        "price":  $pizzaPrice
+      }
+    }
+  ],
+  "pipelineAsString": "[{\"$match\": {\"price\": $pizzaPrice}}]"
+}

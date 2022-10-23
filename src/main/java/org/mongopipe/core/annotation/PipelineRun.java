@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Cristian Donoiu, Ionut Sergiu Peschir
+ * Copyright (c) 2022 - present Cristian Donoiu, Ionut Sergiu Peschir
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,8 +14,18 @@
  *  limitations under the License.
  */
 
-package org.mongopipe.core.model;
+package org.mongopipe.core.annotation;
 
-public enum PipelineOperationType {
-  AGGREGATE, UPDATE_ONE, UPDATE_MANY, FIND_ONE_AND_UPDATE, FIND_AND_MODIFY;
+import java.lang.annotation.*;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD})
+@Documented
+public @interface PipelineRun {
+
+  /**
+   * The pipeline unique id/name. E.g. @Pipeline("pizzaReport")
+   */
+  String value();
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Cristian Donoiu, Ionut Sergiu Peschir
+ * Copyright (c) 2022 - present Cristian Donoiu, Ionut Sergiu Peschir
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package org.mongopipe.core.runner;
 
-import org.mongopipe.core.PipelineRunner;
-import org.mongopipe.core.PipelineStore;
 import org.mongopipe.core.Pipelines;
-import org.mongopipe.core.annotation.Pipeline;
+import org.mongopipe.core.annotation.Param;
 import org.mongopipe.core.annotation.PipelineRepository;
+import org.mongopipe.core.annotation.PipelineRun;
 import org.mongopipe.core.config.PipelineRunConfig;
+import org.mongopipe.core.exception.MissingPipelineParamAnnotationException;
 import org.mongopipe.core.exception.MongoPipeConfigException;
+import org.mongopipe.core.store.PipelineStore;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
@@ -32,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.util.*;
@@ -55,7 +57,7 @@ public class PipelineRepositoriesLoader {
             .addScanners(new MethodAnnotationsScanner(), new TypeAnnotationsScanner())
     );
     //reflections.getTypesAnnotatedWith(PipelineRepository.class);
-    Set<Method> pipelineRunMethods = reflections.getMethodsAnnotatedWith(Pipeline.class);
+    Set<Method> pipelineRunMethods = reflections.getMethodsAnnotatedWith(PipelineRun.class);
     if (pipelineRunMethods.size() == 0) {
       throw new MongoPipeConfigException("No pipeline annotated methods found in packages under \""
           + pipelineRunConfig.getRepositoriesScanPackage() + "\". Check that the configuration");
@@ -67,6 +69,7 @@ public class PipelineRepositoriesLoader {
     Set<Class> pipelineRepositories = new HashSet<>();
 
     for (Method method : getPipelineAnnotatedMethods(pipelineRunConfig)) {
+      validateAnnotations(method);
       if (!pipelineRepositories.contains(method.getDeclaringClass())) {
         pipelineRepositories.add(method.getDeclaringClass());
       }
@@ -91,6 +94,19 @@ public class PipelineRepositoriesLoader {
     }
   }
 
+  private static void validateAnnotations(Method method) {
+    for (Parameter parameter : method.getParameters()) {
+      if (!parameter.isAnnotationPresent(Param.class)) {
+        throw new MissingPipelineParamAnnotationException("@Param annotation missing on method:" + method.getName() + " and parameter:"
+            + parameter.getName());
+      }
+      String paramName = parameter.getAnnotation(Param.class).value();
+      if (!paramName.matches("\\S+")) {
+        throw new MongoPipeConfigException("@Param name should not contain whitespaces: '" + paramName + "' on "
+            + method.getDeclaringClass() + "#" + method.getName());
+      }
+    }
+  }
 
   public static <T> T getRepository(Class<T> pipelineRepositoryInterface) {
     Object repository = REPOSITORIES.get(pipelineRepositoryInterface);
@@ -108,7 +124,7 @@ public class PipelineRepositoriesLoader {
 
     repository = REPOSITORIES.get(pipelineRepositoryInterface);
     if (repository == null) {
-      throw new MongoPipeConfigException("Repository was not configured, probably because interface is missing @Pipeline annotated methods");
+      throw new MongoPipeConfigException("Repository was not configured, probably because interface is missing @PipelineRun annotated methods");
     }
     return (T)repository;
   }

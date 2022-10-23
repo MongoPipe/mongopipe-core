@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Cristian Donoiu, Ionut Sergiu Peschir
+ * Copyright (c) 2022 - present Cristian Donoiu, Ionut Sergiu Peschir
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,5 +19,9 @@ package org.mongopipe.core.exception;
 public class MongoPipeConfigException extends RuntimeException {
   public MongoPipeConfigException(String message) {
     super(message);
+  }
+
+  public MongoPipeConfigException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

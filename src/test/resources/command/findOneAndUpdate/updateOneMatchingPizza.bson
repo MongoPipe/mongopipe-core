@@ -1,0 +1,10 @@
+{
+ "_id": "findOnePizzaAndUpdate",
+ "collection": "pizzaCollection",
+ "pipeline":
+  [
+      {
+        $addFields: { "isVegan": true }
+      }
+ ]
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Cristian Donoiu, Ionut Sergiu Peschir
+ * Copyright (c) 2022 - present Cristian Donoiu, Ionut Sergiu Peschir
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,8 +14,14 @@
  *  limitations under the License.
  */
 
-package org.mongopipe.core.command;
+package org.mongopipe.core.exception;
 
-public interface MongoCommand {
-  public abstract Object run();
+public class MongoPipeRunException extends RuntimeException {
+  public MongoPipeRunException(String message) {
+    super(message);
+  }
+
+  public MongoPipeRunException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

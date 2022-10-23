@@ -1,0 +1,30 @@
+{
+  "_id": "matchingPizzasBySize",
+  "collection": "pizzaCollection",
+  "commandAndParams": {
+    "type": "aggregate",
+    "allowDiskUse": true,
+    "batchSize": 10,
+    "bypassDocumentValidation": true,
+    "collation": {
+      "caseLevel": true,
+      "locale": "EN"
+    },
+    "comment": "comment",
+    "explainVerbosity": "QUERY_PLANNER",
+    "hint": "hint",
+    "maxAwaitTime": 2,
+    "maxTimeMS": {
+      "$numberLong": "1"
+    }
+  },
+  "description": "pizzas by size",
+  "pipeline": [
+    {
+      "$match": {
+        "size": "${pizzaSize}"
+      }
+    }
+  ],
+  "pipelineAsString": "[{\"$match\": {\"size\": \"${pizzaSize}\"}}]"
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Cristian Donoiu, Ionut Sergiu Peschir
+ * Copyright (c) 2022 - present Cristian Donoiu, Ionut Sergiu Peschir
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.mongopipe.core.util;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,17 +24,16 @@ import java.util.Map;
  */
 public class Maps {
 
-  public static Map<String, Serializable> paramsMap(Serializable... keyValuesPairs) {
-    if (keyValuesPairs.length % 2 != 0) {
+  public static <K> Map<K, ?> of(K k1, Object v1, Object... others) {
+    if (others.length % 2 != 0) {
       throw new RuntimeException("Need to specify an even number of elements in the order key,value,key,value, ...");
     }
     Map map = new HashMap();
-    for (int i = 0; i< keyValuesPairs.length; i++) {
-      if (!(keyValuesPairs[i] instanceof String)) {
-        throw new RuntimeException("Param map key must be a String");
-      }
-      map.put(keyValuesPairs[i], keyValuesPairs[++i]);
+    map.put(k1, v1);
+    for (int i = 0; i< others.length; i++) {
+      map.put(others[i], others[++i]);
     }
     return map;
   }
+
 }

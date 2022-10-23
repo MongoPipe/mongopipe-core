@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Cristian Donoiu, Ionut Sergiu Peschir
+ * Copyright (c) 2022 - present Cristian Donoiu, Ionut Sergiu Peschir
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -49,7 +49,9 @@ public class PipelineRunConfig extends PipelineStoreConfig {
     return new Builder();
   }
 
-
+  /**
+   * Creates the connection and returns the database connection.
+   */
   public MongoDatabase getMongoDatabase() {
     if (mongoClient == null) { // If user did not provided MongoClient, create one here.
       if (getUri() == null) {
@@ -62,7 +64,11 @@ public class PipelineRunConfig extends PipelineStoreConfig {
           .build();
       mongoClient = MongoClients.create(mongoClientSettings);
     }
-    mongoDatabase = mongoClient.getDatabase(getDatabaseName());
+    if (mongoDatabase == null) {
+      // Alternatively you can set on the collection: collection.withCodecRegistry(pojoCodecRegistry)
+      mongoDatabase = mongoClient.getDatabase(getDatabaseName()).withCodecRegistry(PojoCodecConfig.getCodecRegistry());
+    }
+
     return mongoDatabase;
   }
 
@@ -128,4 +134,13 @@ public class PipelineRunConfig extends PipelineStoreConfig {
       return new PipelineRunConfig(this);
     }
   }
+
+  public MongoClient getMongoClient() {
+    return mongoClient;
+  }
+
+  public void setMongoClient(MongoClient mongoClient) {
+    this.mongoClient = mongoClient;
+  }
+
 }

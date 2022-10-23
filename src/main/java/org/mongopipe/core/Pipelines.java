@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 2022 Cristian Donoiu, Ionut Sergiu Peschir
+ * Copyright (c) 2022 - present Cristian Donoiu, Ionut Sergiu Peschir
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *        https://www.apache.org/licenses/LICENSE-2.0
+ *       https://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.mongopipe.core;
@@ -19,12 +19,17 @@ package org.mongopipe.core;
 import org.mongopipe.core.config.PipelineRunConfig;
 import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.mongopipe.core.runner.PipelineRepositoriesLoader;
+import org.mongopipe.core.runner.PipelineRunner;
+import org.mongopipe.core.store.PipelineStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Factories for most of the API.
+ */
 public class Pipelines {
   public static final String DEFAULT_CONFIG_ID = "<configurationId>";
   private static final Logger LOG = LoggerFactory.getLogger(Pipelines.class);
@@ -32,7 +37,7 @@ public class Pipelines {
   private static Map<String, PipelineStore> STORE_MAP = new HashMap<>();
   private static Map<String, PipelineRunner> RUNNER_MAP = new HashMap<>();
 
-  static class PipelineRunConfigProxy extends PipelineRunConfig.Builder {
+  private static class PipelineRunConfigProxy extends PipelineRunConfig.Builder {
     public PipelineRunConfig build() {
       PipelineRunConfig pipelineRunConfig = super.build();
       if (pipelineRunConfig.getId() == null) {
@@ -50,8 +55,37 @@ public class Pipelines {
     return new PipelineRunConfigProxy();
   }
 
+  /**
+   * Obtains a pipeline interface implementation that you can use to call your pipelines.
+   * A. Without Spring (mongopipe-core):
+   * Pipelines.from(MyRestaurant.class)
+   *     .getPizzaOrdersBySize("MEDIUM");
+   *
+   * B. With Spring (mongopipe-spring):
+   * @Autowired
+   * MyRestaurant myRestaurant; // No need to call 'Pipelines.from'.
+   * ...
+   * myRestaurant.getPizzaOrdersBySize("MEDIUM", ...);
+   * ```
+   * @param pipelineRepositoryInterface is your interface class where you marked pipelines using the @Pipeline annotation.
+   * @param <T> The actual implementation proxy.
+   * @return
+   */
+  public static <T> T from(Class<T> pipelineRepositoryInterface) {
+    return PipelineRepositoriesLoader.getRepository(pipelineRepositoryInterface);
+  }
+
+  /**
+   * Returns a pipeline store allowing CRUD operations on the pipeline.
+   * @param configurationId
+   * @return
+   */
   public static PipelineStore getStore(String configurationId) {
-    PipelineStore pipelineStore = new PipelineStore(CONFIG_MAP.get(configurationId));
+    PipelineRunConfig pipelineRunConfig = CONFIG_MAP.get(configurationId);
+    if (pipelineRunConfig == null) {
+      throw new MongoPipeConfigException("Mongo-pipe configuration is missing. Use 'Pipelines.newConfig()' for this.");
+    }
+    PipelineStore pipelineStore = new PipelineStore(pipelineRunConfig);
     STORE_MAP.put(configurationId, pipelineStore);
     return pipelineStore;
   }
@@ -84,15 +118,6 @@ public class Pipelines {
 
   public static PipelineRunConfig getConfig(String configId) {
     return CONFIG_MAP.get(configId);
-  }
-
-//  public static Map<String, PipelineRunConfig> getConfigurationsMap() {
-//    return Collections.unmodifiableMap(configurationsMap);
-//  }
-
-  public static <T> T from(Class<T> pipelineRepositoryInterface) {
-    // pai iau proxy-urile care trebuie sa fie gata legate la un anumit config deci nu te ajuta aici config
-    return PipelineRepositoriesLoader.getRepository(pipelineRepositoryInterface);
   }
 
 }
