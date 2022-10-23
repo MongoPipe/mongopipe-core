@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package org.mongopipe.core;
+package org.mongopipe.core.runner;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -22,21 +22,28 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
+import org.json.JSONException;
 import org.junit.Test;
+import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.annotation.Param;
 import org.mongopipe.core.annotation.Pipeline;
 import org.mongopipe.core.annotation.PipelineRepository;
 import org.mongopipe.core.model.PipelineRun;
+import org.mongopipe.core.util.AbstractMongoDBTest;
 import org.mongopipe.core.util.Maps;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static org.mongopipe.core.util.TestUtil.*;
+import static org.mongopipe.core.util.BsonUtil.*;
+import static org.mongopipe.core.util.JsonUtil.assertJsonEqual;
+import static org.mongopipe.core.util.JsonUtil.convertPojoToJson;
 
-public class TestPipeline extends AbstractMongoDBTest {
-  private static final Logger LOG = LoggerFactory.getLogger(TestPipeline.class);
+public class PipelineRunTest extends AbstractMongoDBTest {
+  private static final Logger LOG = LoggerFactory.getLogger(PipelineRunTest.class);
 
 
 
@@ -45,10 +52,14 @@ public class TestPipeline extends AbstractMongoDBTest {
 
     @Pipeline("pipelineOne")
     List<Document> runMyFirstPipeline(@Param("pizzaSize") String pizzaSize);  // TODO: Test with result Pojo class to check conversion, will need to be implemented.
+
+    @Pipeline("pizzasBySize")
+    List<Pizza> getMatchingPizzas(@Param("pizzaSize") String pizzaSize);
+
   }
 
   @Test
-  public void testSimplePipelineRun() {
+  public void testSimplePipelineRunWithInlinePipelineRun() {
 
     ConnectionString connectionString = new ConnectionString("mongodb://localhost:" + port);
     MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
@@ -56,25 +67,7 @@ public class TestPipeline extends AbstractMongoDBTest {
             .build();
     MongoClient mongoClient = MongoClients.create(mongoClientSettings);
     MongoDatabase db = mongoClient.getDatabase("test");
-    db.getCollection("orders").insertMany(convertJsonArrayToDocumentList("[\n" +
-        "        { _id: 0, name: \"Pepperoni\", size: \"small\", price: 19,\n" +
-        "        quantity: 10, date: ISODate( \"2021-03-13T08:14:30Z\" ) },\n" +
-        "    { _id: 1, name: \"Pepperoni\", size: \"medium\", price: 20,\n" +
-        "        quantity: 20, date : ISODate( \"2021-03-13T09:13:24Z\" ) },\n" +
-        "    { _id: 2, name: \"Pepperoni\", size: \"large\", price: 21,\n" +
-        "        quantity: 30, date : ISODate( \"2021-03-17T09:22:12Z\" ) },\n" +
-        "    { _id: 3, name: \"Cheese\", size: \"small\", price: 12,\n" +
-        "        quantity: 15, date : ISODate( \"2021-03-13T11:21:39.736Z\" ) },\n" +
-        "    { _id: 4, name: \"Cheese\", size: \"medium\", price: 13,\n" +
-        "        quantity:50, date : ISODate( \"2022-01-12T21:23:13.331Z\" ) },\n" +
-        "    { _id: 5, name: \"Cheese\", size: \"large\", price: 14,\n" +
-        "        quantity: 10, date : ISODate( \"2022-01-12T05:08:13Z\" ) },\n" +
-        "    { _id: 6, name: \"Vegan\", size: \"small\", price: 17,\n" +
-        "        quantity: 10, date : ISODate( \"2021-01-13T05:08:13Z\" ) },\n" +
-        "    { _id: 7, name: \"Vegan\", size: \"medium\", price: 18,\n" +
-        "        quantity: 10, date : ISODate( \"2021-01-13T05:10:13Z\" ) }\n" +
-        "]"));
-
+    db.getCollection("testCollection").insertMany(loadResourcePathIntoDocumentList("runner/data.bson"));
 
     Pipelines.newConfig()
         .uri("mongodb://localhost:" + port)
@@ -83,9 +76,11 @@ public class TestPipeline extends AbstractMongoDBTest {
         .repositoriesScanPackage("org.mongopipe")
         .build();
 
+
+    // Create pipeline manually. Can be also created from a pipeline.bson file.
     Pipelines.getStore().createPipeline(PipelineRun.builder()
         .id("pipelineOne")
-        .pipeline("[\n" +
+        .jsonPipeline("[\n" +     // Inline as JSON. You can also provide it as BSON as this is the way it is stored.
             "  {\n" +
             "    $match: {\n" +
             "      size: \"${pizzaSize}\"\n" +
@@ -100,7 +95,7 @@ public class TestPipeline extends AbstractMongoDBTest {
             "    }\n" +
             "  }\n" +
             "]")
-        .collection("orders")
+        .collection("testCollection")
         .build());
 
 
@@ -113,9 +108,38 @@ public class TestPipeline extends AbstractMongoDBTest {
 
     // And test also the manual way of running pipelines, without annotations.
     PipelineRunner pipelineRunner = Pipelines.getRunner();
-    reports = pipelineRunner.run("pipelineOne", List.class, Maps.paramsMap("pizzaSize", "medium"));
+    reports = pipelineRunner.run("pipelineOne", Document.class, Maps.paramsMap("pizzaSize", "medium")).collect(Collectors.toList());
     assertJsonEqual(expected, reports);
-
   }
 
+  @Test
+  public void testWithFileBasedPipeline() throws JSONException {
+    ConnectionString connectionString = new ConnectionString("mongodb://localhost:" + port);
+    MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
+        .applyConnectionString(connectionString)
+        .build();
+    MongoClient mongoClient = MongoClients.create(mongoClientSettings);
+    MongoDatabase db = mongoClient.getDatabase("test");
+
+    Pipelines.newConfig()
+        .uri("mongodb://localhost:" + port)
+        .databaseName("test")
+        .storeCollection("pipelines_store")
+        .repositoriesScanPackage("org.mongopipe")
+        .build();
+
+    //Pizza pizza = loadResourcePathIntoBsonDocument("runner/pizza.bson", Pizza.class);
+    PipelineRun pipelineRun = loadResourcePathIntoPojo("runner/pizzasBySize.bson", PipelineRun.class);
+    db.getCollection(pipelineRun.getCollection()).insertMany(loadResourcePathIntoDocumentList("runner/data.bson"));
+
+    // Create pipeline.
+    Pipelines.getStore().createPipeline(pipelineRun);
+
+    List<Pizza> pizzas = Pipelines.from(MyRestaurant.class)
+        .getMatchingPizzas("medium");
+    assertEquals(3, pizzas.size());
+    assertTrue(pizzas.get(0) instanceof Pizza);
+    String expected = "[{\"date\": {\"$date\": \"2021-03-13T09:13:24Z\"}, \"_id\": 1, \"name\": \"Pepperoni\"},{\"date\": {\"$date\": \"2022-01-12T21:23:13.331Z\"}, \"_id\": 4, \"name\": \"Cheese\"},{\"date\": {\"$date\": \"2021-01-13T05:10:13Z\"}, \"_id\": 7, \"name\": \"Vegan\"}]";
+    JSONAssert.assertEquals(expected, convertPojoToJson(pizzas), false);
+  }
 }

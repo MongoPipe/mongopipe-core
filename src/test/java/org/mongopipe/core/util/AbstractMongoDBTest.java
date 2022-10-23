@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package org.mongopipe.core;
+package org.mongopipe.core.util;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -46,6 +46,7 @@ public abstract class AbstractMongoDBTest extends TestCase {
     MongodStarter starter = MongodStarter.getDefaultInstance();
 
     port = Network.getFreeServerPort();
+//    port = 64700;
     MongodConfig mongodConfig = MongodConfig.builder()
         .version(Version.Main.PRODUCTION)
         .net(new Net(port, Network.localhostIsIPv6()))

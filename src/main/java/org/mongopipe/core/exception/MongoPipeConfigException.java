@@ -20,4 +20,8 @@ public class MongoPipeConfigException extends RuntimeException {
   public MongoPipeConfigException(String message) {
     super(message);
   }
+
+  public MongoPipeConfigException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

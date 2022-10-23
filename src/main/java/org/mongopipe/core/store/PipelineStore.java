@@ -1,20 +1,20 @@
 /*
  * Copyright (c) 2022 Cristian Donoiu, Ionut Sergiu Peschir
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *        https://www.apache.org/licenses/LICENSE-2.0
+ *       https://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-package org.mongopipe.core;
+package org.mongopipe.core.store;
 
 import org.mongopipe.core.config.PipelineRunConfig;
 import org.mongopipe.core.model.PipelineRun;
@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * Handles the storage for MongoPipelines.
@@ -42,15 +44,15 @@ public class PipelineStore {
   }
 
   public PipelineRun getPipeline(String pipelineId) {
-    // See TODO on store.
-    return store.get(pipelineId);
+    // TODO: versioning, cache, exception if not found, etc
+    return pipelineRunConfig.getMongoDatabase().getCollection(pipelineRunConfig.getStoreCollection(), PipelineRun.class)
+        .find(eq("_id", pipelineId)).iterator().next();
   }
 
   public void createPipeline(PipelineRun pipelineRun) {
-    // TODO: Because BSON != JSON, PipelineRun#pipeline is a string representation of BSON but when storing convert it to BSON type so that
-    //  in db we have pure BSON.
-    // Also when reading from db, do the conversion back from BSON to BSON string.
-    store.put(pipelineRun.getId(), pipelineRun);
+    // TODO: versioning, cache, exception if not found, etc
+    pipelineRunConfig.getMongoDatabase().getCollection(pipelineRunConfig.getStoreCollection(), PipelineRun.class)
+        .insertOne(pipelineRun);
   }
 
   public void update(PipelineRun pipelineRun) {

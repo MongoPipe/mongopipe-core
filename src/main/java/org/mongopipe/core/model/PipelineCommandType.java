@@ -16,6 +16,6 @@
 
 package org.mongopipe.core.model;
 
-public enum PipelineOperationType {
+public enum PipelineCommandType {
   AGGREGATE, UPDATE_ONE, UPDATE_MANY, FIND_ONE_AND_UPDATE, FIND_AND_MODIFY;
 }

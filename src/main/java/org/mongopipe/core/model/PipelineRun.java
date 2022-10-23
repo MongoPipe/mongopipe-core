@@ -16,11 +16,22 @@
 
 package org.mongopipe.core.model;
 
+import org.bson.BsonDocument;
+import org.bson.codecs.pojo.annotations.BsonProperty;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mongopipe.core.util.BsonUtil.toBsonDocumentList;
+
+/**
+ * Stores both the pipeline and the running context (target collection, type of command, options).
+ * In future the raw pipeline could be extracted and referenced
+ * 
+ */
 public class PipelineRun {
+  @BsonProperty("_id")
   String id;
   /**
    * The version will increase on each pipeline update performed by the org.mongopipe.core.migration or by an store update operation.
@@ -29,29 +40,31 @@ public class PipelineRun {
   LocalDateTime insertedAt;
   LocalDateTime modifiedAt;
   /**
-   * The raw/template BSON pipeline that is run by MongoDB
+   * The raw/template BSON pipeline that is run by MongoDB.
+   * You can also provide it as a JSON string when calling the builder 'jsonPipeline' method.
    */
-  String pipeline;
+  List<BsonDocument> pipeline;
+
   /**
    * Target collection on which to run.
    */
   String collection;
   String description;
   /**
-   * Optionally fully qualified class name. Used to automatically map result to the specified type. Can be also provided
-   * at runtime when running.
-   * If missing then the result will be of generic type, i.e. Map, List, String, Integer, etc.
+   * Optionally fully qualified class name. Used to automatically map result to the specified type.
+   * By default it is extracted from the @Pipeline annotated method return type.
+   * Can be also provided at runtime when running manually with PipelineRunner.
    */
   String resultClass;
 
   /**
-   * The pipeline operation type. There are many commands that can use a pipeline. Specify here the operation to be executed.
-   * Default is to run an 'db.collection.aggregate()'. Store it here to avoid complication of the call API.
+   * The pipeline command type. There are many commands that can use a pipeline. Specify here the operation to be executed.
+   * Default is to run an 'db.collection.aggregate()'.
    */
-  PipelineOperationType operationType;
+  PipelineCommandType commandType;
 
   /**
-   * The list of operation params excepting the pipeline, that are needed by the corresponding {@link #operationType} command.
+   * The list of operation params excepting the pipeline, that are needed by the corresponding {@link #commandType} command.
    * E.g. for an aggregate pipeline: <code>{"allowDiskUse": true}</code>
    */
   List<Serializable> operationParams;
@@ -59,19 +72,23 @@ public class PipelineRun {
   /**
    * Optionally extra JSON serializable information (e.g. array or object) that is <b>provided by user</b> and stored along with the
    * pipeline. E.g. Sample pipeline template parameter values for a hint on what values to provide for template variables.
+   * TODO: Consider using @BsonExtraElements annotation. See https://www.mongodb.com/docs/drivers/java/sync/current/fundamentals/data-formats/pojo-customization/
    */
   Serializable notes;
+
+  public PipelineRun() {
+  }
 
   private PipelineRun(Builder builder) {
     setId(builder.id);
     setVersion(builder.version);
     setInsertedAt(builder.insertedAt);
     setModifiedAt(builder.modifiedAt);
-    setPipeline(builder.pipeline);
+    setPipeline(toBsonDocumentList(builder.jsonPipeline));
     setCollection(builder.collection);
     setDescription(builder.description);
     setResultClass(builder.resultClass);
-    setOperationType(builder.operationType);
+    setCommandType(builder.commandType);
     setOperationParams(builder.operationParams);
     setNotes(builder.notes);
   }
@@ -112,11 +129,11 @@ public class PipelineRun {
     this.modifiedAt = modifiedAt;
   }
 
-  public String getPipeline() {
+  public List<BsonDocument> getPipeline() {
     return pipeline;
   }
 
-  public void setPipeline(String pipeline) {
+  public void setPipeline(List<BsonDocument> pipeline) {
     this.pipeline = pipeline;
   }
 
@@ -144,12 +161,12 @@ public class PipelineRun {
     this.resultClass = resultClass;
   }
 
-  public PipelineOperationType getOperationType() {
-    return operationType;
+  public PipelineCommandType getCommandType() {
+    return commandType;
   }
 
-  public void setOperationType(PipelineOperationType operationType) {
-    this.operationType = operationType;
+  public void setCommandType(PipelineCommandType commandType) {
+    this.commandType = commandType;
   }
 
   public List<Serializable> getOperationParams() {
@@ -174,11 +191,11 @@ public class PipelineRun {
     private Long version;
     private LocalDateTime insertedAt;
     private LocalDateTime modifiedAt;
-    private String pipeline;
+    private String jsonPipeline;
     private String collection;
     private String description;
     private String resultClass;
-    private PipelineOperationType operationType;
+    private PipelineCommandType commandType;
     private List<Serializable> operationParams;
     private Serializable notes;
 
@@ -205,8 +222,8 @@ public class PipelineRun {
       return this;
     }
 
-    public Builder pipeline(String val) {
-      pipeline = val;
+    public Builder jsonPipeline(String val) {
+      jsonPipeline = val;
       return this;
     }
 
@@ -220,13 +237,13 @@ public class PipelineRun {
       return this;
     }
 
-    public Builder resultClass(String val) {
-      resultClass = val;
+    public Builder resultClass(Class val) {
+      resultClass = val.getCanonicalName();
       return this;
     }
 
-    public Builder operationType(PipelineOperationType val) {
-      operationType = val;
+    public Builder commandType(PipelineCommandType val) {
+      commandType = val;
       return this;
     }
 
