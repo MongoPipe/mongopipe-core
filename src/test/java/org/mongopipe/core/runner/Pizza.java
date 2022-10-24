@@ -22,7 +22,6 @@ import java.util.Date;
 
 // TODO: test also with inner class
 public class Pizza {
-//  @BsonProperty("id")
   @BsonProperty("_id")
   Long id;
 

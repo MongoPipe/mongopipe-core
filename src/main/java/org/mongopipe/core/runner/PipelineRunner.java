@@ -65,7 +65,7 @@ public class PipelineRunner {
     // TODO: Refactor.
     if (pipelineRun.getCommandType() == null || pipelineRun.getCommandType() == PipelineCommandType.AGGREGATE) {
 
-      String rawPipeline = BsonUtil.toString(pipelineRun.getPipeline());
+      String rawPipeline = BsonUtil.toString(pipelineRun.getPipeline()); // Convert to json to evaluate with freemarker, and then back.
 
       // 1. Configure FreeMarker
       //
@@ -85,7 +85,7 @@ public class PipelineRunner {
         throw new InvalidPipelineTemplateException("Invalid template", e);
       }
 
-      List<BsonDocument> bsonList = toBsonDocumentList(rawPipeline);
+      List<BsonDocument> bsonList = toBsonDocumentList(rawPipeline); // Now convert it back to bson.
       Class pojoClass = returnPojoType != null ? returnPojoType : Document.class;
       if (pipelineRun.getResultClass() != null) {
         try {

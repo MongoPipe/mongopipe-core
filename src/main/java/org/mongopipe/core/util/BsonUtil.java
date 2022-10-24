@@ -63,9 +63,9 @@ public class BsonUtil {
   }
 
   /**
-   * Converts a String from a resource path to a List of Documents.
+   * Converts a String from a classpath resource to a List of Documents.
    */
-  public static List<Document> loadResourcePathIntoDocumentList(String resourcePath) {
+  public static List<Document> loadResourceIntoDocumentList(String resourcePath) {
     try {
       String bson = new String(Files.readAllBytes(Paths.get(BsonUtil.class.getClassLoader().getResource(resourcePath).toURI())));
       return toBsonDocumentList(bson).stream()
@@ -76,7 +76,10 @@ public class BsonUtil {
     }
   }
 
-  public static <T> T loadResourcePathIntoPojo(String resourcePath, Class<T> pojoClass) {
+  /**
+   * Converts a String from a classpath resource to pojo class.
+   */
+  public static <T> T loadResourceIntoPojo(String resourcePath, Class<T> pojoClass) {
     try {
       // see bson2pojo https://stackoverflow.com/questions/71777864/how-to-convert-a-pojo-to-an-bson-using-mongodb-java-driver
       String bsonString = new String(Files.readAllBytes(Paths.get(BsonUtil.class.getClassLoader().getResource(resourcePath).toURI())));

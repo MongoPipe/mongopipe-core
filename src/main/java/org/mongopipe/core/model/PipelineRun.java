@@ -84,7 +84,9 @@ public class PipelineRun {
     setVersion(builder.version);
     setInsertedAt(builder.insertedAt);
     setModifiedAt(builder.modifiedAt);
-    setPipeline(toBsonDocumentList(builder.jsonPipeline));
+    if (builder.pipeline != null) {
+      setPipeline(toBsonDocumentList(builder.pipeline)); // Important: Store as native BsonDocument list in MongoDB and not as a String.
+    }
     setCollection(builder.collection);
     setDescription(builder.description);
     setResultClass(builder.resultClass);
@@ -191,7 +193,7 @@ public class PipelineRun {
     private Long version;
     private LocalDateTime insertedAt;
     private LocalDateTime modifiedAt;
-    private String jsonPipeline;
+    private String pipeline;
     private String collection;
     private String description;
     private String resultClass;
@@ -222,8 +224,8 @@ public class PipelineRun {
       return this;
     }
 
-    public Builder jsonPipeline(String val) {
-      jsonPipeline = val;
+    public Builder pipeline(String val) {
+      pipeline = val;
       return this;
     }
 

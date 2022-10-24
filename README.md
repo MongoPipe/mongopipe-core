@@ -20,7 +20,7 @@ MongoDB pipelines can be used for both **querying and updating** the data.
 ```java
 Pipelines.newConfig()
   .uri("<mongo uri>")
-  .databaseName("<database name>")
+  .databaseName("<database name>")toBsonDocumentList(builder.jsonPipeli
   //.mongoClient(optionalYourMongoClientInstance)
   .build();
 ```

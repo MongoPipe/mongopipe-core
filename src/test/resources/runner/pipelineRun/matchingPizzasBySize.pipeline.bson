@@ -1,5 +1,5 @@
 {
- "_id": "pizzasBySize",
+ "_id": "matchingPizzasBySize",
  "collection": "pizzaCollection",
  "description": "pizzas by size"
  "pipeline":
