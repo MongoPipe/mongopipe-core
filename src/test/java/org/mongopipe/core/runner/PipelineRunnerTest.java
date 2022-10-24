@@ -37,8 +37,8 @@ import static org.mongopipe.core.util.BsonUtil.loadResourceIntoDocumentList;
 import static org.mongopipe.core.util.BsonUtil.loadResourceIntoPojo;
 import static org.mongopipe.core.util.TestUtil.*;
 
-public class PipelineRunTest extends AbstractMongoDBTest {
-  private static final Logger LOG = LoggerFactory.getLogger(PipelineRunTest.class);
+public class PipelineRunnerTest extends AbstractMongoDBTest {
+  private static final Logger LOG = LoggerFactory.getLogger(PipelineRunnerTest.class);
 
 
   @PipelineRepository  // Optional, TODO: unit test.
