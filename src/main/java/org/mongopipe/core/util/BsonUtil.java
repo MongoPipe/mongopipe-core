@@ -30,6 +30,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,7 +48,7 @@ public class BsonUtil {
     // https://www.mongodb.com/docs/drivers/java/sync/current/fundamentals/data-formats/document-data-format-pojo/
     // https://splunktool.com/jsonparse-equivalent-in-mongo-driver-3x-for-java
     // https://stackoverflow.com/questions/34436952/json-parse-equivalent-in-mongo-driver-3-x-for-java
-    final CodecRegistry codecRegistry = CodecRegistries.fromProviders(Arrays.asList(new BsonValueCodecProvider()));
+    final CodecRegistry codecRegistry = CodecRegistries.fromProviders(Collections.singletonList(new BsonValueCodecProvider()));
     JsonReader reader = new JsonReader(bson);
     BsonArrayCodec arrayReader = new BsonArrayCodec(codecRegistry);
     BsonArray array = arrayReader.decode(reader, DecoderContext.builder().build());

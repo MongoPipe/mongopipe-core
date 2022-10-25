@@ -30,7 +30,7 @@ import static org.mongopipe.core.util.BsonUtil.toBsonDocumentList;
  * In future the raw pipeline could be extracted and referenced
  * 
  */
-public class PipelineRun {
+public class PipelineRun extends PipelineRunBase {
   @BsonProperty("_id")
   String id;
   /**
@@ -80,6 +80,7 @@ public class PipelineRun {
   }
 
   private PipelineRun(Builder builder) {
+    super();
     setId(builder.id);
     setVersion(builder.version);
     setInsertedAt(builder.insertedAt);
