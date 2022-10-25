@@ -21,7 +21,12 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import org.mongopipe.core.exception.MongoPipeConfigException;
+
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 /**
  * Library main configuration. It establishes a Mongo connection unless MongoClient is provided.
@@ -63,6 +68,17 @@ public class PipelineRunConfig extends PipelineStoreConfig {
       mongoClient = MongoClients.create(mongoClientSettings);
     }
     mongoDatabase = mongoClient.getDatabase(getDatabaseName());
+
+    // Set POJO codec registry.
+    // https://mongodb.github.io/mongo-java-driver/4.7/driver/getting-started/quick-start-pojo/
+    CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
+        CodecRegistries.fromProviders(PojoCodecProvider.builder()
+            .automatic(true)
+            .build()));
+    // Alternatively you can set on the collection.
+    // collection.withCodecRegistry(pojoCodecRegistry)
+    mongoDatabase = mongoDatabase.withCodecRegistry(pojoCodecRegistry);
+
     return mongoDatabase;
   }
 
@@ -128,4 +144,13 @@ public class PipelineRunConfig extends PipelineStoreConfig {
       return new PipelineRunConfig(this);
     }
   }
+
+  public MongoClient getMongoClient() {
+    return mongoClient;
+  }
+
+  public void setMongoClient(MongoClient mongoClient) {
+    this.mongoClient = mongoClient;
+  }
+
 }

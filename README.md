@@ -3,12 +3,10 @@
 [![Licence](https://img.shields.io/hexpm/l/plug.svg)](https://github.com/MongoPipe/mongopipe-core/blob/master/LICENSE)
 [![Open Source](https://badges.frapsoft.com/os/v3/open-source.svg?v=103)](https://opensource.org/)
 
-![logo](docs/mongopipe.gif)
-
 # Intro
-
-**Forget hardcoding** of MongoDB aggregation pipelines into your code. Code is static. <br>
-A **pipeline is a BSON document, so store it in the database.** <br>
+![logo](docs/vs.png ) <br>
+**Forget hardcoding** of MongoDB aggregation pipelines into your code. Code is static. Business rules are dynamic. <br> 
+A **pipeline is a BSON document, so store it in the database.** <br> 
 Usage examples:
 * You are doing fraud detection using pipelines, a DBA might like to tune **urgently** some pipelines according to a newly detected fraud risk.
 * You have an UI and a client or administrator wants to change **easily** the values displayed by a dynamic combo box(pipeline backed), or to add new chart(pipeline backed) without waiting for a dedicated release with the new functionality.
@@ -23,6 +21,7 @@ MongoDB pipelines can be used for both **querying and updating** the data.
 Pipelines.newConfig()
   .uri("<mongo uri>")
   .databaseName("<database name>")
+  //.mongoClient(optionalYourMongoClientInstance)
   .build();
 ```
 
@@ -34,7 +33,7 @@ public interface MyRestaurant {
     Stream<PizzaOrders> getPizzaOrdersBySize(@Param("pizzaSize") String pizzaSize);
      
     @Pipeline("calculateComplexPizzaReport")
-    Stream<Report> calculateComplexPizzaReport(String size, Date startDate, ...); 
+    Stream<Report> calculateComplexPizzaReport(@Param("pizzaSize") String size, @Param("startDate") Date startDate, ...); 
 }    
 
  
@@ -46,7 +45,7 @@ Pipelines.from(MyRestaurant.class)
 @Autowired
 MyRestaurant myRestaurant; // No need to call 'Pipelines.from'.
 ...
-myRestaurant.calculateComplexPizzaReport("MEDIUM", ...);    
+myRestaurant.getPizzaOrdersBySize("MEDIUM", ...);    
 ```
 NOTE: Alternatively you can use the `Pipelines.getRunner` to run any pipeline in your store in a generic way. More on `PipelineRunner`(TODO: documentation link here).
 
@@ -113,3 +112,9 @@ public void devEnvOnly(DB db){
 // ...
 }
 ```
+
+# TODO
+1. Add example pipeline for pagination, example with freemarker for dynamic criteria.
+2. Helpers for bson creation of criteria, pagination, etc. This complements existing **freemarker capability** within pipeline
+   by allowing more dynamic creation of the pipeline. Still remember there are hundreds of pipeline stages and operators.
+   Also there exists the com.mongodb.client.model.Filters API.

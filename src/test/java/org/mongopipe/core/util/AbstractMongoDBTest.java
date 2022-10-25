@@ -14,8 +14,13 @@
  *  limitations under the License.
  */
 
-package org.mongopipe.core;
+package org.mongopipe.core.util;
 
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoDatabase;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -26,53 +31,54 @@ import de.flapdoodle.embed.process.runtime.Network;
 import junit.framework.TestCase;
 
 public abstract class AbstractMongoDBTest extends TestCase {
-
-
   /**
    * please store Starter or RuntimeConfig in a static final field
    * if you want to use artifact store caching (or else disable caching)
    */
-  private static final MongodStarter starter = MongodStarter.getDefaultInstance();
+  public static final MongodStarter STARTER = MongodStarter.getDefaultInstance();
 
-  private static MongodExecutable mongodExecutable;
-  private static MongodProcess mongod;
+  public MongodExecutable mongodExecutable;
+  public MongodProcess mongod;
 
-
-  protected int port;
+  public static int PORT;
+  public static MongodConfig MONGOD_CONFIG;
+  static {
+    try {
+      // These 2 needs to be static pe JVM or Class in order for the tests to not fail.
+      // See https://github.com/flapdoodle-oss/de.flapdoodle.embed.mongo/blob/de.flapdoodle.embed.mongo-3.5.0/README.md#usage---optimization
+      PORT = Network.getFreeServerPort();
+      MONGOD_CONFIG = MongodConfig.builder()
+          .version(Version.V4_4_17)
+          .net(new Net(PORT, Network.localhostIsIPv6()))
+          .build();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+  public MongoDatabase db;
+  public MongoClient mongoClient;
 
   @Override
   protected void setUp() throws Exception {
-    // If running once consider adding shutdown hook and "if not null" test
-    MongodStarter starter = MongodStarter.getDefaultInstance();
-
-    port = Network.getFreeServerPort();
-    MongodConfig mongodConfig = MongodConfig.builder()
-        .version(Version.Main.PRODUCTION)
-        .net(new Net(port, Network.localhostIsIPv6()))
-        .build();
-
-
-    mongodExecutable = starter.prepare(mongodConfig);
+    mongodExecutable = STARTER.prepare(MONGOD_CONFIG);
     mongod = mongodExecutable.start();
+
+    ConnectionString connectionString = new ConnectionString("mongodb://localhost:" + PORT);
+    MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
+        .applyConnectionString(connectionString)
+        .build();
+    mongoClient = MongoClients.create(mongoClientSettings);
+    db = mongoClient.getDatabase("test");
 
     super.setUp();
 
-    //    ConnectionString connectionString = new ConnectionString("mongodb://localhost:" + port);
-    //    MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
-    //        .applyConnectionString(connectionString)
-    //        .build();
-    //    MongoClient mongoClient = MongoClients.create(mongoClientSettings);
-        //mongoClient.listDatabaseNames().first();
-    //    db.createCollection("testCol");
-    //
-    //    db.getCollection("testCol").insertMany(Arrays.asList(Document.parse("{\"a\": 1}]"), Document.parse("{\"b\": 1}]")));
-    //    Iterable iterable = db.getCollection("testCol").find(Document.parse("{}"));
-    //    LOG.info("documents: {}", StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList()));
   }
 
   @Override
   protected void tearDown() throws Exception {
     super.tearDown();
+
+    db.drop();
     mongod.stop();
     mongodExecutable.stop();
   }

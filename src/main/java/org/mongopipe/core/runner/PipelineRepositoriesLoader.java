@@ -16,8 +16,7 @@
 
 package org.mongopipe.core.runner;
 
-import org.mongopipe.core.PipelineRunner;
-import org.mongopipe.core.PipelineStore;
+import org.mongopipe.core.store.PipelineStore;
 import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.annotation.Pipeline;
 import org.mongopipe.core.annotation.PipelineRepository;

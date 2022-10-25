@@ -1,0 +1,9 @@
+{
+  "_id": 0,
+  "name": "Pepperoni",
+  "size": "small",
+  "price": 19,
+  "quantity": 10,
+  date : ISODate( "2021-03-17T09:22:12Z" ),
+  available: true
+}

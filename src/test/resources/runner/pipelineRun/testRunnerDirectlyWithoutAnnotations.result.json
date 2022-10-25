@@ -1,0 +1,29 @@
+[
+  {
+    "_id": 1,
+    "name": "Pepperoni",
+    "size": "medium",
+    "price": 20,
+    "quantity": 20,
+    "date": "2021-03-13T09:13:24.000+00:00",
+    "available": true
+  },
+  {
+    "_id": 4,
+    "name": "Cheese",
+    "size": "medium",
+    "price": 13,
+    "quantity": 50,
+    "date": "2022-01-12T21:23:13.331+00:00",
+    "available": true
+  },
+  {
+    "_id": 7,
+    "name": "Vegan",
+    "size": "medium",
+    "price": 18,
+    "quantity": 10,
+    "date": "2021-01-13T05:10:13.000+00:00",
+    "available": true
+  }
+]

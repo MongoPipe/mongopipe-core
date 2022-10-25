@@ -16,8 +16,7 @@
 
 package org.mongopipe.core.runner;
 
-import org.mongopipe.core.PipelineRunner;
-import org.mongopipe.core.PipelineStore;
+import org.mongopipe.core.store.PipelineStore;
 import org.mongopipe.core.annotation.Param;
 import org.mongopipe.core.annotation.Pipeline;
 import org.mongopipe.core.exception.MissingPipelineAnnotationException;
@@ -64,12 +63,7 @@ public class PipelineRepositoryInvocationHandler implements InvocationHandler {
     }
     String pipelineId = method.getAnnotation(Pipeline.class).value();
 
-    //PipelineRun pipelineRun = pipelineStore.getPipeline(pipelineId);
-    //if (pipelineRun == null) {
-    //  throw new PipelineNotFoundException(pipelineId);
-    //}
-
-    return pipelineRunner.run(pipelineId, method.getReturnType(), params);
+    return pipelineRunner.run(pipelineId, method, params);
 
   }
 }
