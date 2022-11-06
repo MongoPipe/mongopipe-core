@@ -18,7 +18,12 @@ package org.mongopipe.core.store;
 
 import org.mongopipe.core.config.PipelineRunConfig;
 import org.mongopipe.core.model.Pipeline;
+import org.mongopipe.core.model.PipelineRun;
 import org.mongopipe.core.util.BsonUtil;
+import org.mongopipe.core.fetcher.FetchCachedPipeline;
+import org.mongopipe.core.fetcher.FetchPipeline;
+import org.mongopipe.core.fetcher.FetchPipelineStore;
+import org.mongopipe.core.notifier.ChangeNotifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,18 +42,26 @@ import static org.mongopipe.core.util.BsonUtil.toBsonDocumentList;
  */
 public class PipelineStore {
   private static final Logger LOG = LoggerFactory.getLogger(PipelineStore.class);
-  private Map<String, Pipeline> store = new HashMap<>(); // TODO: Extract an interface allowing client his own implementation of storage location.
 
   private PipelineRunConfig pipelineRunConfig;
+  private final FetchPipeline<PipelineRun> fetchPipeline;
+  private ChangeNotifier changeNotifier = new ChangeNotifier();
 
   public PipelineStore(PipelineRunConfig pipelineRunConfig) {
     this.pipelineRunConfig = pipelineRunConfig;
+
+    //check to update or not cache
+    FetchPipelineStore<PipelineRun> cachePipelineStore = new FetchPipelineStore<>(pipelineRunConfig, Pipeline.class);
+    this.fetchPipeline =
+        pipelineRunConfig.isStoreCacheEnabled() ? new FetchCachedPipeline<>(cachePipelineStore) : cachePipelineStore;
+    changeNotifier.addListener((event) -> fetchPipeline.update());
   }
 
   public Pipeline getPipeline(String pipelineId) {
     // TODO: versioning, cache, exception if not found, etc
-    return pipelineRunConfig.getMongoDatabase().getCollection(pipelineRunConfig.getStoreCollection(), Pipeline.class)
-        .find(eq("_id", pipelineId)).iterator().next();
+
+    //TODO IOPE: add change listener/notifier
+    return fetchPipeline.getById(pipelineId);
   }
 
   public void createPipeline(Pipeline pipeline) {
@@ -56,10 +69,13 @@ public class PipelineStore {
     // TODO: versioning, cache, exception if not found, etc
     pipelineRunConfig.getMongoDatabase().getCollection(pipelineRunConfig.getStoreCollection(), Pipeline.class)
         .insertOne(pipeline);
+    changeNotifier.fire();
   }
 
   public void update(Pipeline pipeline) {
+    enhance(pipeline);
     // TODO: On each update increment Pipeline#version.
+    changeNotifier.fire();
   }
 
   private void enhance(Pipeline pipeline) {
