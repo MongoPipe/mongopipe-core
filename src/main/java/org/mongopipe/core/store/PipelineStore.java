@@ -17,20 +17,15 @@
 package org.mongopipe.core.store;
 
 import org.mongopipe.core.config.PipelineRunConfig;
-import org.mongopipe.core.model.Pipeline;
-import org.mongopipe.core.model.PipelineRun;
-import org.mongopipe.core.util.BsonUtil;
 import org.mongopipe.core.fetcher.FetchCachedPipeline;
 import org.mongopipe.core.fetcher.FetchPipeline;
 import org.mongopipe.core.fetcher.FetchPipelineStore;
+import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.notifier.ChangeNotifier;
+import org.mongopipe.core.util.BsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.mongodb.client.model.Filters.eq;
 import static org.mongopipe.core.util.BsonUtil.toBsonDocumentList;
 
 /**
@@ -44,14 +39,14 @@ public class PipelineStore {
   private static final Logger LOG = LoggerFactory.getLogger(PipelineStore.class);
 
   private PipelineRunConfig pipelineRunConfig;
-  private final FetchPipeline<PipelineRun> fetchPipeline;
+  private final FetchPipeline<Pipeline> fetchPipeline;
   private ChangeNotifier changeNotifier = new ChangeNotifier();
 
   public PipelineStore(PipelineRunConfig pipelineRunConfig) {
     this.pipelineRunConfig = pipelineRunConfig;
 
     //check to update or not cache
-    FetchPipelineStore<PipelineRun> cachePipelineStore = new FetchPipelineStore<>(pipelineRunConfig, Pipeline.class);
+    FetchPipelineStore<Pipeline> cachePipelineStore = new FetchPipelineStore<>(pipelineRunConfig, Pipeline.class);
     this.fetchPipeline =
         pipelineRunConfig.isStoreCacheEnabled() ? new FetchCachedPipeline<>(cachePipelineStore) : cachePipelineStore;
     changeNotifier.addListener((event) -> fetchPipeline.update());

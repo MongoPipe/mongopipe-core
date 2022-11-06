@@ -67,7 +67,7 @@ public abstract class AbstractMongoDBTest extends TestCase {
   public MongoClient mongoClient;
 
   protected void beforeEach() {  // See TO DO on class.
-    newPipelinesConfig("pipelines_store");
+    newPipelinesConfig("pipelines_store", false);
   }
 
   @Override
@@ -96,12 +96,13 @@ public abstract class AbstractMongoDBTest extends TestCase {
     mongodExecutable.stop();
   }
 
-  protected void newPipelinesConfig(String storeCollection) {
+  protected void newPipelinesConfig(String storeCollection, boolean cacheEnabled) {
     // Consider this helper versus @Before because it allows configuration.
     Pipelines.newConfig()
         .uri("mongodb://localhost:" + PORT)
         .databaseName("test")
         .storeCollection(storeCollection)
+        .storeCacheEnabled(cacheEnabled)
         .repositoriesScanPackage("org.mongopipe")
         .build();
   }

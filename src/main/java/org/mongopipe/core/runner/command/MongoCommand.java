@@ -16,12 +16,8 @@
 
 package org.mongopipe.core.runner.command;
 
-<<<<<<<< HEAD:src/main/java/org/mongopipe/core/runner/command/MongoCommand.java
 public interface MongoCommand {
 
   Object run();
-========
-public enum PipelineCommandType {
-  AGGREGATE, UPDATE_ONE, UPDATE_MANY, FIND_ONE_AND_UPDATE, FIND_AND_MODIFY;
->>>>>>>> main:src/main/java/org/mongopipe/core/model/PipelineCommandType.java
 }
+

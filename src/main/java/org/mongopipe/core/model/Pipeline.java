@@ -33,7 +33,7 @@ import java.util.List;
  *   - pipelineStore.create
  *   - via classpath files
  */
-public class Pipeline {
+public class Pipeline extends PipelineBase {
   /**
    * Uniquely identifies a pipeline run. Used by the @PipelineRun annotation in the pipeline repositories.
    */
