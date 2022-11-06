@@ -74,7 +74,7 @@ public class PipelineRunnerTest extends AbstractMongoDBTest {
         .pipeline("[\n" +     // Inline as JSON but will be converted to BSON in the builder.
             "  {\n" +
             "    $match: {\n" +
-            "      size: \"${pizzaSize}\"\n" +
+            "      size: $pizzaSize\n" +
             "    }\n" +
             "  },\n" +
             "  {\n" +

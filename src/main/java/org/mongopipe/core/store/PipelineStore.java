@@ -65,12 +65,16 @@ public class PipelineStore {
     pipelineRunConfig.getMongoDatabase().getCollection(pipelineRunConfig.getStoreCollection(), Pipeline.class)
         .insertOne(pipeline);
     changeNotifier.fire();
+
+    LOG.info("Created pipeline: {}", pipeline.getId());
   }
 
   public void update(Pipeline pipeline) {
     enhance(pipeline);
     // TODO: On each update increment Pipeline#version.
     changeNotifier.fire();
+
+    LOG.info("Updated pipeline: {}", pipeline.getId());
   }
 
   private void enhance(Pipeline pipeline) {
