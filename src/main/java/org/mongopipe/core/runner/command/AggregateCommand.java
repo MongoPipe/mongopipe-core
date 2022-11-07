@@ -19,7 +19,6 @@ package org.mongopipe.core.runner.command;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Collation;
-import org.bson.BsonDocument;
 import org.mongopipe.core.config.PipelineRunConfig;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.runner.command.param.AggregateParams;
@@ -49,7 +48,7 @@ public class AggregateCommand implements MongoCommand {
     MongoCollection mongoCollection = pipelineRunConfig.getMongoDatabase().getCollection(pipeline.getCollection());
     AggregateParams aggregateParams = pipeline.getCommandAndParamsAs(AggregateParams.class);
 
-    List<BsonDocument> actualPipeline = bsonParameterEvaluator.evaluate(pipeline.getPipeline());
+    List actualPipeline = bsonParameterEvaluator.evaluate(pipeline.getPipeline());
     AggregateIterable aggregateIterable = mongoCollection.aggregate(actualPipeline, returnPojoClass);
     if (aggregateParams != null) {
       setAggregationOptions(aggregateIterable, aggregateParams);

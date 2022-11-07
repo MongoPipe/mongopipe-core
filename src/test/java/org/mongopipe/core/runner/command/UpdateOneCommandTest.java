@@ -20,7 +20,7 @@ import org.bson.Document;
 import org.junit.Test;
 import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.model.Pipeline;
-import org.mongopipe.core.repository.MyRestaurant;
+import org.mongopipe.core.store.MyRestaurant;
 import org.mongopipe.core.runner.command.param.UpdateOneParams;
 import org.mongopipe.core.util.AbstractMongoDBTest;
 import org.mongopipe.core.util.BsonUtil;

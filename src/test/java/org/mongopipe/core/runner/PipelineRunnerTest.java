@@ -17,12 +17,13 @@
 package org.mongopipe.core.runner;
 
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.json.JSONException;
 import org.junit.Test;
 import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.annotation.Param;
-import org.mongopipe.core.annotation.PipelineRepository;
 import org.mongopipe.core.annotation.PipelineRun;
+import org.mongopipe.core.annotation.PipelineRunners;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.util.AbstractMongoDBTest;
 import org.mongopipe.core.util.Maps;
@@ -33,6 +34,12 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Aggregates.sort;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Sorts.descending;
+import static java.util.Arrays.asList;
 import static org.mongopipe.core.util.BsonUtil.loadResourceIntoDocumentList;
 import static org.mongopipe.core.util.BsonUtil.loadResourceIntoPojo;
 import static org.mongopipe.core.util.TestUtil.*;
@@ -41,7 +48,7 @@ public class PipelineRunnerTest extends AbstractMongoDBTest {
   private static final Logger LOG = LoggerFactory.getLogger(PipelineRunnerTest.class);
 
 
-  @PipelineRepository  // Optional, TODO: unit test.
+  @PipelineRunners  // Optional, TODO: unit test.
   public interface MyRestaurant {
 
     @PipelineRun("pipelineOne")
@@ -146,5 +153,29 @@ public class PipelineRunnerTest extends AbstractMongoDBTest {
     assertTrue(pizzas.get(0) instanceof Pizza);
     JSONAssert.assertEquals(getClasspathFileContent("runner/pipelineRun/matchingPizzasBySize.result.json"), convertPojoToJson(pizzas), false);
   }
+
+  @Test
+  public void testCreationOfPipelineDynamicallyViaMongoApi() {
+    // Given
+    db.getCollection("testCollection").insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
+    Bson matchStage = match(and(eq("size", "$size"), eq("available", "$available")));   // Static imports from com.mongodb.client.model.Aggregates
+    Bson sortByCountStage = sort(descending("price"));
+    Pipelines.getStore().createPipeline(Pipeline.builder()
+        .id("dynamicPipeline")
+        .pipeline(asList(matchStage, sortByCountStage))
+        .collection("testCollection")
+        .build());
+    PipelineRunner pipelineRunner = Pipelines.getRunner();
+
+    // When
+    List<Pizza> pizzas = pipelineRunner.run("dynamicPipeline", Pizza.class,
+        Maps.of("size", "medium", "available", true))
+        .collect(Collectors.toList());
+
+    // Then
+    assertEquals(3, pizzas.size());
+    assertEquals(Float.valueOf(20), pizzas.get(0).getPrice());
+  }
+
 
 }

@@ -18,8 +18,8 @@ package org.mongopipe.core.runner;
 
 import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.annotation.Param;
-import org.mongopipe.core.annotation.PipelineRepository;
 import org.mongopipe.core.annotation.PipelineRun;
+import org.mongopipe.core.annotation.PipelineRunners;
 import org.mongopipe.core.config.PipelineRunConfig;
 import org.mongopipe.core.exception.MissingPipelineParamAnnotationException;
 import org.mongopipe.core.exception.MongoPipeConfigException;
@@ -78,14 +78,14 @@ public class PipelineRepositoriesLoader {
     for (Class pipelineRepositoryClass : pipelineRepositories) {
       String configurationId = Pipelines.DEFAULT_CONFIG_ID;
 
-      if (pipelineRepositoryClass.isAnnotationPresent(PipelineRepository.class)) {
-        configurationId = ((PipelineRepository)pipelineRepositoryClass.getAnnotation(PipelineRepository.class)).configurationId();
+      if (pipelineRepositoryClass.isAnnotationPresent(PipelineRunners.class)) {
+        configurationId = ((PipelineRunners)pipelineRepositoryClass.getAnnotation(PipelineRunners.class)).configurationId();
         //LOG.info("{}", configurationId);
       }
       PipelineRunner pipelineRunner = Pipelines.getRunner(configurationId);
-      PipelineStore pipelineStore = Pipelines.getStore(configurationId);
+      PipelineStore pipelineRepository = Pipelines.getStore(configurationId);
 
-      PipelineRepositoryInvocationHandler invocationHandler = new PipelineRepositoryInvocationHandler(pipelineStore, pipelineRunner);
+      PipelineRepositoryInvocationHandler invocationHandler = new PipelineRepositoryInvocationHandler(pipelineRepository, pipelineRunner);
       // https://docs.oracle.com/javase/8/docs/technotes/guides/reflection/proxy.html
       REPOSITORIES.put(pipelineRepositoryClass, Proxy.newProxyInstance(
           pipelineRepositoryClass.getClassLoader(),
@@ -113,8 +113,8 @@ public class PipelineRepositoriesLoader {
     if (repository == null) {
       // Load it now, test if it has annotated methods or class annotation
       String configId = Pipelines.DEFAULT_CONFIG_ID;
-      if (pipelineRepositoryInterface.isAnnotationPresent(PipelineRepository.class)) {
-        configId = pipelineRepositoryInterface.getAnnotation(PipelineRepository.class).configurationId();
+      if (pipelineRepositoryInterface.isAnnotationPresent(PipelineRunners.class)) {
+        configId = pipelineRepositoryInterface.getAnnotation(PipelineRunners.class).configurationId();
       }
       PipelineRunConfig pipelineRunConfig = Pipelines.getConfig(configId);
 

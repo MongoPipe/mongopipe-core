@@ -18,12 +18,14 @@ package org.mongopipe.core.model;
 
 import org.bson.BsonDocument;
 import org.bson.codecs.pojo.annotations.BsonProperty;
-import org.mongopipe.core.runner.command.param.CommandAndParams;
+import org.bson.conversions.Bson;
 import org.mongopipe.core.runner.PipelineRunner;
+import org.mongopipe.core.runner.command.param.CommandAndParams;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Stores both the pipeline and the running context (target collection, type of collection method and params).
@@ -97,7 +99,11 @@ public class Pipeline extends PipelineBase {
     version = builder.version;
     insertedAt = builder.insertedAt;
     modifiedAt = builder.modifiedAt;
-    pipeline = builder.pipeline;
+    if (builder.pipeline != null) {
+      pipeline = builder.pipeline.stream()
+          .map(stage -> stage.toBsonDocument())
+          .collect(Collectors.toList());
+    }
     pipelineAsString = builder.pipelineAsString;
     collection = builder.collection;
     description = builder.description;
@@ -115,7 +121,7 @@ public class Pipeline extends PipelineBase {
     private LocalDateTime insertedAt;
     private LocalDateTime modifiedAt;
     private String pipelineAsString;
-    private List<BsonDocument> pipeline;
+    private List<Bson> pipeline;
     private String collection;
     private String description;
     private String resultClass;
@@ -144,7 +150,7 @@ public class Pipeline extends PipelineBase {
       return this;
     }
 
-    public Builder pipeline(List<BsonDocument> val) {
+    public Builder pipeline(List<Bson> val) {
       pipeline = val;
       return this;
     }

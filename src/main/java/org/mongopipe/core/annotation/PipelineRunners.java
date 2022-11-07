@@ -29,7 +29,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 @Documented
-public @interface PipelineRepository {
+public @interface PipelineRunners {
 
   /**
    * The {@link PipelineStoreConfig#id} in case user has multiple databases or multiple PipelineStoreConfig configurations.

@@ -26,7 +26,7 @@ import org.mongopipe.core.util.BsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.mongopipe.core.util.BsonUtil.toBsonDocumentList;
+import static org.mongopipe.core.util.BsonUtil.toBsonList;
 
 /**
  * Handles the storage for MongoPipelines.
@@ -81,7 +81,7 @@ public class PipelineStore {
     if (pipeline.getPipeline() != null) {
       pipeline.setPipelineAsString(BsonUtil.toString(pipeline.getPipeline()));
     } else if (pipeline.getPipelineAsString() != null) {
-      pipeline.setPipeline(toBsonDocumentList(pipeline.getPipelineAsString())); // Important: Store as native BsonDocument list in MongoDB and not as a String.
+      pipeline.setPipeline(toBsonList(pipeline.getPipelineAsString())); // Important: Store as native BsonDocument list in MongoDB and not as a String.
     }
   }
 }

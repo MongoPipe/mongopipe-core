@@ -29,6 +29,8 @@ public class Pizza {
 
   Date date;
 
+  Float price;
+
   public Pizza() {
   }
 
@@ -56,4 +58,11 @@ public class Pizza {
     this.date = date;
   }
 
+  public Float getPrice() {
+    return price;
+  }
+
+  public void setPrice(Float price) {
+    this.price = price;
+  }
 }

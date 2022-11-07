@@ -20,6 +20,8 @@ import org.mongopipe.core.annotation.Param;
 import org.mongopipe.core.annotation.PipelineRun;
 import org.mongopipe.core.exception.MissingPipelineAnnotationException;
 import org.mongopipe.core.store.PipelineStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -31,7 +33,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PipelineRepositoryInvocationHandler implements InvocationHandler {
-
+  private static final Logger LOG = LoggerFactory.getLogger(PipelineRepositoryInvocationHandler.class);
   private final PipelineStore pipelineStore;
   private final PipelineRunner pipelineRunner;
   private static List<Object> OBJECT_METHODS = Arrays.asList(Object.class.getDeclaredMethods()).stream().map(m -> m.getName()).collect(Collectors.toList());
@@ -50,12 +52,14 @@ public class PipelineRepositoryInvocationHandler implements InvocationHandler {
         throw new MissingPipelineAnnotationException("@Pipeline annotation missing on method:" + method.getName());
       }
     }
+    String pipelineId = method.getAnnotation(PipelineRun.class).value();
+    LOG.debug("Running pipeline {}", pipelineId);
+
     Map<String, Object> params = new HashMap<>();
     int argsIndex = 0;
     for (Parameter parameter : method.getParameters()) {
       params.put(parameter.getAnnotation(Param.class).value(), args[argsIndex++]);
     }
-    String pipelineId = method.getAnnotation(PipelineRun.class).value();
 
     return pipelineRunner.run(pipelineId, method, params);
 

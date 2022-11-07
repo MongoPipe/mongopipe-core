@@ -41,7 +41,10 @@ public class BsonUtil {
     return bsonDocumentList.toString();
   }
 
-  public static List<BsonDocument> toBsonDocumentList(String bson) {
+  /**
+   * @returns a BsonDocument list from the bson string.
+   */
+  public static List<BsonDocument> toBsonList(String bson) {
     // Document.parse(rawPipeline);
     // http://mongodb.github.io/mongo-java-driver/3.7/driver/getting-started/quick-start-pojo/
     // https://www.mongodb.com/docs/drivers/java/sync/current/fundamentals/data-formats/document-data-format-pojo/
@@ -90,7 +93,8 @@ public class BsonUtil {
   public static List<Document> loadResourceIntoDocumentList(String resourcePath) {
     try {
       String bson = new String(Files.readAllBytes(Paths.get(BsonUtil.class.getClassLoader().getResource(resourcePath).toURI())));
-      return toBsonDocumentList(bson).stream()
+      return toBsonList(bson).stream()
+          .map(elem -> (BsonDocument) elem)
           .map(BsonUtil::toDocument)
           .collect(Collectors.toList());
     } catch (IOException | URISyntaxException e) {
@@ -111,8 +115,7 @@ public class BsonUtil {
       return pojo;
 
     } catch (RuntimeException e) {
-      throw new MongoPipeConfigException("Can not convert bson string to pojo:" + bsonString
-          + "\nCheck that you used ${param} notation for your own parameters", e);
+      throw new MongoPipeConfigException("Can not convert bson string to pojo:" + bsonString);
     }
   }
 

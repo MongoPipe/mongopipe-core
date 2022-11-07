@@ -90,6 +90,9 @@ public class Pipelines {
     return pipelineStore;
   }
 
+  /**
+   * @returns the pipeline store that can be used to do CRUD operations on pipelines.
+   */
   public static PipelineStore getStore() {
     return getStore(DEFAULT_CONFIG_ID);
   }

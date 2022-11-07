@@ -22,7 +22,7 @@ import org.json.JSONException;
 import org.junit.Test;
 import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.model.Pipeline;
-import org.mongopipe.core.repository.MyRestaurant;
+import org.mongopipe.core.store.MyRestaurant;
 import org.mongopipe.core.runner.Pizza;
 import org.mongopipe.core.runner.command.param.AggregateParams;
 import org.mongopipe.core.runner.command.param.Collation;

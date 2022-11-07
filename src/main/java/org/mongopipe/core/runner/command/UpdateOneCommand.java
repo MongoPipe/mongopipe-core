@@ -21,6 +21,7 @@ import com.mongodb.client.model.Collation;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.BsonDocument;
+import org.bson.conversions.Bson;
 import org.mongopipe.core.config.PipelineRunConfig;
 import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.mongopipe.core.model.Pipeline;
@@ -50,7 +51,7 @@ public class UpdateOneCommand implements MongoCommand {
     this.bsonParameterEvaluator = new BsonParameterEvaluator(parameters);
   }
 
-  public UpdateResult run(MongoCollection mongoCollection, BsonDocument filter, List<BsonDocument> actualPipeline,
+  public UpdateResult run(MongoCollection mongoCollection, BsonDocument filter, List<Bson> actualPipeline,
       UpdateOptions updateOptions) {
     return mongoCollection.updateOne(filter, actualPipeline, updateOptions);
   }
@@ -61,7 +62,7 @@ public class UpdateOneCommand implements MongoCommand {
 
     BaseUpdateParams baseUpdateParams = pipeline.getCommandAndParamsAs(BaseUpdateParams.class);
     BsonDocument filter = buildFilter(baseUpdateParams);
-    List<BsonDocument> actualPipeline = bsonParameterEvaluator.evaluate(pipeline.getPipeline());
+    List actualPipeline = bsonParameterEvaluator.evaluate(pipeline.getPipeline());
 
     UpdateOptions updateOptions = buildUpdateOptions(baseUpdateParams);
     UpdateResult updateResult = run(mongoCollection, filter, actualPipeline, updateOptions);

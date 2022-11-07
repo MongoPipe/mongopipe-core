@@ -20,6 +20,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.BsonDocument;
+import org.bson.conversions.Bson;
 import org.mongopipe.core.config.PipelineRunConfig;
 import org.mongopipe.core.model.Pipeline;
 
@@ -32,7 +33,7 @@ public class UpdateManyCommand extends UpdateOneCommand { // Add common base cla
     super(pipeline, pipelineRunConfig, parameters, returnPojoClass);
   }
 
-  public UpdateResult run(MongoCollection mongoCollection, BsonDocument filter, List<BsonDocument> actualPipeline,
+  public UpdateResult run(MongoCollection mongoCollection, BsonDocument filter, List<Bson> actualPipeline,
                           UpdateOptions updateOptions) {
     return mongoCollection.updateMany(filter, actualPipeline, updateOptions);
   }

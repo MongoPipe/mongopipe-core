@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.mongopipe.core.repository;
+package org.mongopipe.core.store;
 
 import org.bson.Document;
 import org.mongopipe.core.annotation.Param;
 import org.mongopipe.core.annotation.PipelineRun;
-import org.mongopipe.core.annotation.PipelineRepository;
+import org.mongopipe.core.annotation.PipelineRunners;
 import org.mongopipe.core.runner.Pizza;
 
 import java.util.List;
 
-@PipelineRepository  // Optional, TODO: unit test.
+@PipelineRunners  // Optional, TODO: unit test.
 public interface MyRestaurant {
 
   @PipelineRun("pipelineOne")

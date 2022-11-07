@@ -69,6 +69,7 @@ public class PipelineRunner {
   }
 
   private <T> T run(Pipeline pipeline, Class returnPojoType, Class<T> returnContainerType, Map<String, ?> parameters) {
+    validate(pipeline);
     Class pojoClass = returnPojoType != null ? returnPojoType : Document.class;
     if (pipeline.getResultClass() != null) {
       try {
@@ -82,6 +83,12 @@ public class PipelineRunner {
     Object result = commandSupplier.build(pipeline, pipelineRunConfig, parameters, pojoClass).run();
 
     return mapFinalResult(result, returnContainerType);
+  }
+
+  private void validate(Pipeline pipeline) {
+    if (pipeline.getCollection() == null) {
+      throw new MongoPipeConfigException("collectionName can not be null");
+    }
   }
 
   private <T> T mapFinalResult(Object result, Class<T> returnContainerType) {

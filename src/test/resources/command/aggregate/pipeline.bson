@@ -22,9 +22,9 @@
   "pipeline": [
     {
       "$match": {
-        "size": "${pizzaSize}"
+        "size": "$pizzaSize"
       }
     }
   ],
-  "pipelineAsString": "[{\"$match\": {\"size\": \"${pizzaSize}\"}}]"
+  "pipelineAsString": "[{\"$match\": {\"size\": \"$pizzaSize\"}}]"
 }

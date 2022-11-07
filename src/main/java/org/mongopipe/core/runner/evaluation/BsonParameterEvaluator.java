@@ -17,7 +17,6 @@
 package org.mongopipe.core.runner.evaluation;
 
 import org.bson.*;
-import org.bson.conversions.Bson;
 import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.mongopipe.core.exception.MongoPipeRunException;
 
@@ -113,7 +112,7 @@ public class BsonParameterEvaluator {
       BsonArray bsonArray = (BsonArray) bsonValue;
       for (final AtomicInteger i = new AtomicInteger(0); i.get() < bsonArray.size(); i.incrementAndGet()) {
         // The parent provides the context function and the child will provide the value.
-        navigate(parentBsonDocument, bsonValue, newBsonValue -> bsonArray.set(i.get(), newBsonValue));
+        navigate(parentBsonDocument, bsonArray.get(i.get()), newBsonValue -> bsonArray.set(i.get(), newBsonValue));
       }
     } else if (bsonValue.isDocument()) {
       BsonDocument bsonDocument = ((BsonDocument) bsonValue);
@@ -150,7 +149,7 @@ public class BsonParameterEvaluator {
   }
 
 
-  public void evaluate(Bson bson) {
+  public void evaluate(BsonDocument bson) {
     BsonDocument bsonDocument = bson.toBsonDocument();
     bsonDocument.forEach((key, bsonValue) -> {
       // The parent provides the context function and the child provides the replacing value.
@@ -162,6 +161,7 @@ public class BsonParameterEvaluator {
     bsonDocumentList.forEach(bsonDocument -> evaluate(bsonDocument));
     return bsonDocumentList;
   }
+
 
 //  /**
 //   * Evaluate Document or BsonDocument and replace parameters with actual values.

@@ -24,7 +24,7 @@ import java.lang.annotation.*;
 public @interface Param {
 
   /**
-   * The pipeline parameter name as it is used in the raw pipeline. E.g. if in the raw template you have a parameter ${pizzaSize} then use
+   * The pipeline parameter name as it is used in the raw pipeline. E.g. if in the raw template you have a parameter $pizzaSize then use
    *   <pre>
    *    @PipelineRun("pizzaReport")
    *    List<Report> getReport(@Param("pizzaSize") String pizzaSize)
