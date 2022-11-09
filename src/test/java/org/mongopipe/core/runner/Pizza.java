@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Cristian Donoiu, Ionut Sergiu Peschir
+ * Copyright (c) 2022 - present Cristian Donoiu, Ionut Sergiu Peschir
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ public class Pizza {
 
   Date date;
 
+  Float price;
+
   public Pizza() {
   }
 
@@ -56,4 +58,11 @@ public class Pizza {
     this.date = date;
   }
 
+  public Float getPrice() {
+    return price;
+  }
+
+  public void setPrice(Float price) {
+    this.price = price;
+  }
 }

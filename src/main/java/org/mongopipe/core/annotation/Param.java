@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Cristian Donoiu, Ionut Sergiu Peschir
+ * Copyright (c) 2022 - present Cristian Donoiu, Ionut Sergiu Peschir
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import java.lang.annotation.*;
 public @interface Param {
 
   /**
-   * The pipeline parameter name as it is used in the raw pipeline. E.g. if in the raw template you have a parameter ${pizzaSize} then use
+   * The pipeline parameter name as it is used in the raw pipeline. E.g. if in the raw template you have a parameter $pizzaSize then use
    *   <pre>
-   *    @Pipeline("pizzaReport")
+   *    @PipelineRun("pizzaReport")
    *    List<Report> getReport(@Param("pizzaSize") String pizzaSize)
    *   </pre>
    * This annotation is required.

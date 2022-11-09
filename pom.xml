@@ -3,27 +3,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <name>mongopipe-core</name>
-    <description>Tool for managing and running MongoDB pipelines</description>
-    <url>https://github.com/MongoPipe/mongopipe-core</url>
-
     <groupId>org.mongopipe</groupId>
     <artifactId>mongopipe-core</artifactId>
     <version>1.0-SNAPSHOT</version>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.target.version>1.8</java.target.version>
-        <maven.compiler.source>${java.target.version}</maven.compiler.source>
-        <maven.compiler.target>${java.target.version}</maven.compiler.target>
-    </properties>
+    <name>MongoPipe core library</name>
+    <description>Run and manage MongoDB pipelines. Stores pipelines in the database, binds them to user own interface methods in the code. </description>
+    <url>https://github.com/MongoPipe/mongopipe-core</url>
 
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
         </license>
     </licenses>
 
@@ -36,16 +26,27 @@
 
     <developers>
         <developer>
-            <id>cristiandonoiu</id>
             <name>Cristian Donoiu</name>
-            <email></email>
+            <id>cristiandonoiu</id>
+            <email>doncristiano@yahoo.com</email>
+            <organization>org.mongopipe</organization>
+            <organizationUrl>https://github.com/MongoPipe/</organizationUrl>
         </developer>
         <developer>
-            <id>ionutSergiuP</id>
             <name>Ionut Sergiu Peschir</name>
+            <id>ionutSergiuP</id>
             <email></email>
         </developer>
     </developers>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.target.version>1.8</java.target.version>
+        <maven.compiler.source>${java.target.version}</maven.compiler.source>
+        <maven.compiler.target>${java.target.version}</maven.compiler.target>
+        <mongodb.driver.version>4.7.2</mongodb.driver.version> <!-- Note: Update also RelaxedJsonReader.java when modifying version.-->
+    </properties>
 
     <distributionManagement>
         <snapshotRepository>
@@ -62,7 +63,13 @@
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
-            <version>4.7.2</version>
+            <version>${mongodb.driver.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>bson</artifactId>
+            <version>${mongodb.driver.version}</version>
         </dependency>
 
         <dependency>
@@ -80,16 +87,17 @@
         </dependency>
 
         <dependency>
-            <groupId>org.freemarker</groupId>
-            <artifactId>freemarker</artifactId>
-            <version>2.3.23</version>  <!-- Use older, to avoid potential conflicts if using a newer API. Can be excluded by client. -->
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.12</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- TEST -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.10</version>
+            <version>4.13.1</version>
             <scope>test</scope>
         </dependency>
 
@@ -127,14 +135,15 @@
             <groupId>org.skyscreamer</groupId>
             <artifactId>jsonassert</artifactId>
             <version>1.5.1</version>
+            <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.12</version>
-            <scope>provided</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.junit.jupiter</groupId>-->
+<!--            <artifactId>junit-jupiter</artifactId>-->
+<!--            <version>5.9.1</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
 
     </dependencies>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Cristian Donoiu, Ionut Sergiu Peschir
+ * Copyright (c) 2022 - present Cristian Donoiu, Ionut Sergiu Peschir
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,22 +17,20 @@
 package org.mongopipe.core.annotation;
 
 import org.mongopipe.core.Pipelines;
-import org.mongopipe.core.config.PipelineStoreConfig;
 
 import java.lang.annotation.*;
 
 /**
- * Optional annotation used to specify a specific configuration id in case the user has multiple databases or configurations.
- * All the pipelines from the annotated pipeline repository interface will use the {@link PipelineStoreConfig} identified by this
- * annotation.
+ * Optional annotation used to mark an interface as containing pipeline run methods.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 @Documented
-public @interface PipelineRepository {
+public @interface PipelineRunners {
 
   /**
-   * The {@link PipelineStoreConfig#id} in case user has multiple databases or multiple PipelineStoreConfig configurations.
+   * The {@link org.mongopipe.core.config.PipelineRunConfig#id} in case user has multiple databases or multiple PipelineStoreConfig
+   * configurations.
    */
-  String configurationId() default Pipelines.DEFAULT_CONFIG_ID;
+  String configurationId() default Pipelines.DEFAULT_CONTEXT_ID;
 }

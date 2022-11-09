@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Cristian Donoiu, Ionut Sergiu Peschir
+ * Copyright (c) 2022 - present Cristian Donoiu, Ionut Sergiu Peschir
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,8 +29,17 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import junit.framework.TestCase;
+import org.mongopipe.core.Pipelines;
+import org.mongopipe.core.config.PipelineRunConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * TODO: Consider replacing with junit jupiter @Extension as @Before annotated method will not work if test class is extending TestCase.
+ */
 public abstract class AbstractMongoDBTest extends TestCase {
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractMongoDBTest.class);
+
   /**
    * please store Starter or RuntimeConfig in a static final field
    * if you want to use artifact store caching (or else disable caching)
@@ -58,8 +67,13 @@ public abstract class AbstractMongoDBTest extends TestCase {
   public MongoDatabase db;
   public MongoClient mongoClient;
 
+  protected void beforeEach() {  // See TO DO on class.
+    newPipelinesConfig("pipelines_store", false);
+  }
+
   @Override
   protected void setUp() throws Exception {
+    LOG.info("---------- Database setup ----------");
     mongodExecutable = STARTER.prepare(MONGOD_CONFIG);
     mongod = mongodExecutable.start();
 
@@ -71,7 +85,7 @@ public abstract class AbstractMongoDBTest extends TestCase {
     db = mongoClient.getDatabase("test");
 
     super.setUp();
-
+    beforeEach();
   }
 
   @Override
@@ -81,5 +95,16 @@ public abstract class AbstractMongoDBTest extends TestCase {
     db.drop();
     mongod.stop();
     mongodExecutable.stop();
+  }
+
+  protected void newPipelinesConfig(String storeCollection, boolean cacheEnabled) {
+    // Consider this helper versus @Before because it allows configuration.
+    Pipelines.registerConfig(PipelineRunConfig.builder()
+        .uri("mongodb://localhost:" + PORT)
+        .databaseName("test")
+        .storeCollection(storeCollection)
+        .storeCacheEnabled(cacheEnabled)
+        .scanPackage("org.mongopipe")
+        .build());
   }
 }

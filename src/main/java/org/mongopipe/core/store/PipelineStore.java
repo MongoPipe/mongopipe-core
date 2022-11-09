@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Cristian Donoiu, Ionut Sergiu Peschir
+ * Copyright (c) 2022 - present Cristian Donoiu, Ionut Sergiu Peschir
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,17 @@
 
 package org.mongopipe.core.store;
 
-import org.mongopipe.core.config.PipelineRunConfig;
+import org.mongopipe.core.config.PipelineRunContext;
 import org.mongopipe.core.fetcher.FetchCachedPipeline;
 import org.mongopipe.core.fetcher.FetchPipeline;
 import org.mongopipe.core.fetcher.FetchPipelineStore;
-import org.mongopipe.core.model.PipelineRun;
+import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.notifier.ChangeNotifier;
+import org.mongopipe.core.util.BsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import static org.mongopipe.core.util.BsonUtil.toBsonList;
 
 /**
  * Handles the storage for MongoPipelines.
@@ -37,39 +37,51 @@ import java.util.Map;
  */
 public class PipelineStore {
   private static final Logger LOG = LoggerFactory.getLogger(PipelineStore.class);
-  private Map<String, PipelineRun> store = new HashMap<>(); // TODO: Extract an interface allowing client his own implementation of storage location.
+
+  private PipelineRunContext pipelineRunContext;
+  private final FetchPipeline<Pipeline> fetchPipeline;
   private ChangeNotifier changeNotifier = new ChangeNotifier();
 
-  private PipelineRunConfig pipelineRunConfig;
-  private final FetchPipeline<PipelineRun> fetchPipeline;
+  public PipelineStore(PipelineRunContext pipelineRunContext) {
+    this.pipelineRunContext = pipelineRunContext;
 
-  public PipelineStore(PipelineRunConfig pipelineRunConfig) {
-
-    this.pipelineRunConfig = pipelineRunConfig;
     //check to update or not cache
-    FetchPipelineStore<PipelineRun> cachePipelineStore = new FetchPipelineStore<>(pipelineRunConfig, PipelineRun.class);
-    this.fetchPipeline =
-            pipelineRunConfig.isStoreCacheEnabled() ? new FetchCachedPipeline<>(cachePipelineStore) : cachePipelineStore;
+    FetchPipelineStore<Pipeline> cachePipelineStore = new FetchPipelineStore<>(pipelineRunContext, Pipeline.class);
+    this.fetchPipeline = pipelineRunContext.getPipelineRunConfig().isStoreCacheEnabled()
+        ? new FetchCachedPipeline<>(cachePipelineStore) : cachePipelineStore;
     changeNotifier.addListener((event) -> fetchPipeline.update());
   }
 
-  public PipelineRun getPipeline(String pipelineId) {
+  public Pipeline getPipeline(String pipelineId) {
     // TODO: versioning, cache, exception if not found, etc
 
     //TODO IOPE: add change listener/notifier
     return fetchPipeline.getById(pipelineId);
   }
 
-  public void createPipeline(PipelineRun pipelineRun) {
+  public void createPipeline(Pipeline pipeline) {
+    enhance(pipeline);
     // TODO: versioning, cache, exception if not found, etc
-    pipelineRunConfig.getMongoDatabase().getCollection(pipelineRunConfig.getStoreCollection(), PipelineRun.class)
-        .insertOne(pipelineRun);
+    pipelineRunContext.getMongoDatabase().getCollection(pipelineRunContext.getPipelineRunConfig().getStoreCollection(), Pipeline.class)
+        .insertOne(pipeline);
     changeNotifier.fire();
+
+    LOG.info("Created pipeline: {}", pipeline.getId());
   }
 
-  public void update(PipelineRun pipelineRun) {
+  public void update(Pipeline pipeline) {
+    enhance(pipeline);
     // TODO: On each update increment Pipeline#version.
-
     changeNotifier.fire();
+
+    LOG.info("Updated pipeline: {}", pipeline.getId());
+  }
+
+  private void enhance(Pipeline pipeline) {
+    if (pipeline.getPipeline() != null) {
+      pipeline.setPipelineAsString(BsonUtil.toString(pipeline.getPipeline()));
+    } else if (pipeline.getPipelineAsString() != null) {
+      pipeline.setPipeline(toBsonList(pipeline.getPipelineAsString())); // Important: Store as native BsonDocument list in MongoDB and not as a String.
+    }
   }
 }

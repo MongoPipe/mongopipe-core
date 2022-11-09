@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Cristian Donoiu, Ionut Sergiu Peschir
+ * Copyright (c) 2022 - present Cristian Donoiu, Ionut Sergiu Peschir
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,18 +14,14 @@
  *  limitations under the License.
  */
 
-package org.mongopipe.core.annotation;
+package org.mongopipe.core.exception;
 
-import java.lang.annotation.*;
+public class MongoPipeRunException extends RuntimeException {
+  public MongoPipeRunException(String message) {
+    super(message);
+  }
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
-@Documented
-public @interface Pipeline {
-
-  /**
-   * The pipeline unique id/name. E.g. @Pipeline("pizzaReport")
-   */
-  String value();
-
+  public MongoPipeRunException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

@@ -17,13 +17,13 @@
 package org.mongopipe.core.runner;
 
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.json.JSONException;
 import org.junit.Test;
 import org.mongopipe.core.Pipelines;
-import org.mongopipe.core.annotation.Param;
-import org.mongopipe.core.annotation.Pipeline;
-import org.mongopipe.core.annotation.PipelineRepository;
-import org.mongopipe.core.model.PipelineRun;
+import org.mongopipe.core.config.PipelineRunConfig;
+import org.mongopipe.core.model.Pipeline;
+import org.mongopipe.core.store.MyRestaurant;
 import org.mongopipe.core.util.AbstractMongoDBTest;
 import org.mongopipe.core.util.Maps;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -33,6 +33,12 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Aggregates.sort;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Sorts.descending;
+import static java.util.Arrays.asList;
 import static org.mongopipe.core.util.BsonUtil.loadResourceIntoDocumentList;
 import static org.mongopipe.core.util.BsonUtil.loadResourceIntoPojo;
 import static org.mongopipe.core.util.TestUtil.*;
@@ -40,42 +46,28 @@ import static org.mongopipe.core.util.TestUtil.*;
 public class PipelineRunnerTest extends AbstractMongoDBTest {
   private static final Logger LOG = LoggerFactory.getLogger(PipelineRunnerTest.class);
 
-
-  @PipelineRepository  // Optional, TODO: unit test.
-  public interface MyRestaurant {
-
-    @Pipeline("pipelineOne")
-    List<Document> runMyFirstPipeline(@Param("pizzaSize") String pizzaSize);  // TODO: Test with result Pojo class to check conversion, will need to be implemented.
-
-    @Pipeline("matchingPizzasBySize")
-    List<Pizza> getMatchingPizzas(@Param("pizzaSize") String pizzaSize);
-
-  }
-
-
   public void newPipelinesConfig(String storeCollection, boolean cacheEnabled) {
     // Consider this helper versus @Before because it allows configuration.
-    Pipelines.newConfig()
+    Pipelines.registerConfig(PipelineRunConfig.builder()
             .uri("mongodb://localhost:" + PORT)
             .databaseName("test")
             .storeCollection(storeCollection)
-            .repositoriesScanPackage("org.mongopipe")
+            .scanPackage("org.mongopipe")
             .storeCacheEnabled(cacheEnabled)
-            .build();
+            .build());
   }
 
   @Test
   public void testSimplePipelineRunWithInlinePipelineRun() {
     // Given
-    newPipelinesConfig("pipelines_store", false);
     db.getCollection("testCollection").insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
     // Create pipeline manually. Can be also created from a pipeline.bson file.
-    Pipelines.getStore().createPipeline(PipelineRun.builder()
+    Pipelines.getStore().createPipeline(Pipeline.builder()
         .id("pipelineOne")
         .pipeline("[\n" +     // Inline as JSON but will be converted to BSON in the builder.
             "  {\n" +
             "    $match: {\n" +
-            "      size: \"${pizzaSize}\"\n" +
+            "      size: $pizzaSize\n" +
             "    }\n" +
             "  },\n" +
             "  {\n" +
@@ -103,14 +95,13 @@ public class PipelineRunnerTest extends AbstractMongoDBTest {
   @Test
   public void testRunnerDirectlyWithoutAnnotations() {
     // Given
-    newPipelinesConfig("pipelines_store", false);
-    PipelineRun pipelineRun = loadResourceIntoPojo("runner/pipelineRun/matchingPizzasBySize.pipeline.bson", PipelineRun.class);
-    db.getCollection(pipelineRun.getCollection()).insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
-    Pipelines.getStore().createPipeline(pipelineRun);
+    Pipeline pipeline = loadResourceIntoPojo("runner/pipelineRun/matchingPizzasBySize.pipeline.bson", Pipeline.class);
+    db.getCollection(pipeline.getCollection()).insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
+    Pipelines.getStore().createPipeline(pipeline);
     PipelineRunner pipelineRunner = Pipelines.getRunner();
 
     // When
-    List<Document> reports = pipelineRunner.run("matchingPizzasBySize", Document.class, Maps.paramsMap("pizzaSize", "medium")).collect(Collectors.toList());
+    List<Document> reports = pipelineRunner.run("matchingPizzasBySize", Document.class, Maps.of("pizzaSize", "medium")).collect(Collectors.toList());
 
     // Then
     assertJsonEqual(getClasspathFileContent("runner/pipelineRun/testRunnerDirectlyWithoutAnnotations.result.json"), reports);
@@ -120,13 +111,13 @@ public class PipelineRunnerTest extends AbstractMongoDBTest {
   public void testRunnerWithoutAnnotationsWithStoreCacheEnabled() {
     // Given
     newPipelinesConfig("pipelines_store", true);
-    PipelineRun pipelineRun = loadResourceIntoPojo("runner/pipelineRun/matchingPizzasBySize.pipeline.bson", PipelineRun.class);
-    db.getCollection(pipelineRun.getCollection()).insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
-    Pipelines.getStore().createPipeline(pipelineRun);
+    Pipeline pipeline = loadResourceIntoPojo("runner/pipelineRun/matchingPizzasBySize.pipeline.bson", Pipeline.class);
+    db.getCollection(pipeline.getCollection()).insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
+    Pipelines.getStore().createPipeline(pipeline);
     PipelineRunner pipelineRunner = Pipelines.getRunner();
 
     // When
-    List<Document> reports = pipelineRunner.run("matchingPizzasBySize", Document.class, Maps.paramsMap("pizzaSize", "medium")).collect(Collectors.toList());
+    List<Document> reports = pipelineRunner.run("matchingPizzasBySize", Document.class, Maps.of("pizzaSize", "medium")).collect(Collectors.toList());
 
     // Then
     assertJsonEqual(getClasspathFileContent("runner/pipelineRun/testRunnerDirectlyWithoutAnnotations.result.json"), reports);
@@ -135,8 +126,7 @@ public class PipelineRunnerTest extends AbstractMongoDBTest {
   @Test
   public void testWithPojoClassForResult() throws JSONException {
     // Given
-    newPipelinesConfig("pipelines_store", false);
-    PipelineRun pipelineRun = loadResourceIntoPojo("runner/pipelineRun/matchingPizzasBySize.pipeline.bson", PipelineRun.class);
+    Pipeline pipelineRun = loadResourceIntoPojo("runner/pipelineRun/matchingPizzasBySize.pipeline.bson", Pipeline.class);
     db.getCollection(pipelineRun.getCollection()).insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
 
     Pipelines.getStore().createPipeline(pipelineRun);
@@ -149,5 +139,29 @@ public class PipelineRunnerTest extends AbstractMongoDBTest {
     assertTrue(pizzas.get(0) instanceof Pizza);
     JSONAssert.assertEquals(getClasspathFileContent("runner/pipelineRun/matchingPizzasBySize.result.json"), convertPojoToJson(pizzas), false);
   }
+
+  @Test
+  public void testCreationOfPipelineDynamicallyViaMongoApi() {
+    // Given
+    db.getCollection("testCollection").insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
+    Bson matchStage = match(and(eq("size", "$size"), eq("available", "$available")));   // Static imports from com.mongodb.client.model.Aggregates
+    Bson sortByCountStage = sort(descending("price"));
+    Pipelines.getStore().createPipeline(Pipeline.builder()
+        .id("dynamicPipeline")
+        .pipeline(asList(matchStage, sortByCountStage))
+        .collection("testCollection")
+        .build());
+    PipelineRunner pipelineRunner = Pipelines.getRunner();
+
+    // When
+    List<Pizza> pizzas = pipelineRunner.run("dynamicPipeline", Pizza.class,
+        Maps.of("size", "medium", "available", true))
+        .collect(Collectors.toList());
+
+    // Then
+    assertEquals(3, pizzas.size());
+    assertEquals(Float.valueOf(20), pizzas.get(0).getPrice());
+  }
+
 
 }

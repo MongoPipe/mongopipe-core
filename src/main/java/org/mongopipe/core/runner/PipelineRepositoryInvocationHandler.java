@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Cristian Donoiu, Ionut Sergiu Peschir
+ * Copyright (c) 2022 - present Cristian Donoiu, Ionut Sergiu Peschir
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package org.mongopipe.core.runner;
 
-import org.mongopipe.core.store.PipelineStore;
 import org.mongopipe.core.annotation.Param;
-import org.mongopipe.core.annotation.Pipeline;
+import org.mongopipe.core.annotation.PipelineRun;
 import org.mongopipe.core.exception.MissingPipelineAnnotationException;
-import org.mongopipe.core.exception.MissingPipelineParamAnnotationException;
+import org.mongopipe.core.store.PipelineStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PipelineRepositoryInvocationHandler implements InvocationHandler {
-
+  private static final Logger LOG = LoggerFactory.getLogger(PipelineRepositoryInvocationHandler.class);
   private final PipelineStore pipelineStore;
   private final PipelineRunner pipelineRunner;
   private static List<Object> OBJECT_METHODS = Arrays.asList(Object.class.getDeclaredMethods()).stream().map(m -> m.getName()).collect(Collectors.toList());
@@ -45,23 +45,21 @@ public class PipelineRepositoryInvocationHandler implements InvocationHandler {
 
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-    if (!method.isAnnotationPresent(Pipeline.class)) {
+    if (!method.isAnnotationPresent(PipelineRun.class)) {
       if (OBJECT_METHODS.contains(method.getName())) {
         return String.class.getMethod(method.getName()).invoke(method.getName()); // TODO: remove, added for debug
       } else {
         throw new MissingPipelineAnnotationException("@Pipeline annotation missing on method:" + method.getName());
       }
     }
-    Map<String, Serializable> params = new HashMap<>();
+    String pipelineId = method.getAnnotation(PipelineRun.class).value();
+    LOG.debug("Running pipeline {}", pipelineId);
+
+    Map<String, Object> params = new HashMap<>();
     int argsIndex = 0;
     for (Parameter parameter : method.getParameters()) {
-      if (!parameter.isAnnotationPresent(Param.class)) {
-        throw new MissingPipelineParamAnnotationException("@Param annotation missing on method:" + method.getName() + " and parameter:"
-            + parameter.getName());
-      }
-      params.put(parameter.getAnnotation(Param.class).value(), (Serializable) args[argsIndex++]);
+      params.put(parameter.getAnnotation(Param.class).value(), args[argsIndex++]);
     }
-    String pipelineId = method.getAnnotation(Pipeline.class).value();
 
     return pipelineRunner.run(pipelineId, method, params);
 

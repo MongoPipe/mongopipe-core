@@ -1,0 +1,11 @@
+{
+ "_id": "updateManyMatchingPizza",
+ "collection": "pizzaCollection",
+ "description": "pizzas by size"
+ "pipeline":
+  [
+      {
+        $addFields: { "isVegan": true }
+      }
+ ]
+}

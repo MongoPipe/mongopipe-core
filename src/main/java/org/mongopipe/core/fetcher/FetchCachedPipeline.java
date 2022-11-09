@@ -1,13 +1,13 @@
 package org.mongopipe.core.fetcher;
 
-import org.mongopipe.core.model.PipelineRunBase;
+import org.mongopipe.core.model.PipelineBase;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-public class FetchCachedPipeline<T extends PipelineRunBase> implements FetchPipeline<T> {
+public class FetchCachedPipeline<T extends PipelineBase> implements FetchPipeline<T> {
 
     private final FetchPipeline<T> fetchPipelineStoreDelegate;
     Map<String, T> cache = new ConcurrentHashMap<>();
