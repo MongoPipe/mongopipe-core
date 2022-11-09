@@ -19,12 +19,10 @@ package org.mongopipe.core.store;
 import org.bson.Document;
 import org.mongopipe.core.annotation.Param;
 import org.mongopipe.core.annotation.PipelineRun;
-import org.mongopipe.core.annotation.PipelineRunners;
 import org.mongopipe.core.runner.Pizza;
 
 import java.util.List;
 
-@PipelineRunners  // Optional, TODO: unit test.
 public interface MyRestaurant {
 
   @PipelineRun("pipelineOne")
@@ -41,6 +39,5 @@ public interface MyRestaurant {
 
   @PipelineRun("findOnePizzaAndUpdate")
   Document findOneAndUpdate(@Param("pizzaPrice") Integer pizzaPrice);
-
 
 }

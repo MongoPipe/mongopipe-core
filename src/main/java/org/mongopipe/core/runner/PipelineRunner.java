@@ -18,14 +18,14 @@ package org.mongopipe.core.runner;
 
 
 import org.bson.Document;
+import org.mongopipe.core.config.PipelineRunContext;
+import org.mongopipe.core.exception.MongoPipeConfigException;
+import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.runner.command.*;
 import org.mongopipe.core.runner.command.param.AggregateParams;
 import org.mongopipe.core.runner.command.param.FindOneAndUpdateParams;
 import org.mongopipe.core.runner.command.param.UpdateManyParams;
 import org.mongopipe.core.runner.command.param.UpdateOneParams;
-import org.mongopipe.core.config.PipelineRunConfig;
-import org.mongopipe.core.exception.MongoPipeConfigException;
-import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.store.PipelineStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,11 +60,11 @@ public class PipelineRunner {
         new FindOneAndUpdateCommand(pipelineRun, pipelineRunConfig, parameters, returnPojoClass));
   }
 
-  private PipelineRunConfig pipelineRunConfig;
+  private PipelineRunContext pipelineRunContext;
   private PipelineStore pipelineStore;
 
-  public PipelineRunner(PipelineRunConfig pipelineRunConfig, PipelineStore pipelineStore) {
-    this.pipelineRunConfig = pipelineRunConfig;
+  public PipelineRunner(PipelineRunContext pipelineRunContext, PipelineStore pipelineStore) {
+    this.pipelineRunContext = pipelineRunContext;
     this.pipelineStore = pipelineStore;
   }
 
@@ -80,7 +80,7 @@ public class PipelineRunner {
     }
     CommandSupplier commandSupplier = SUPPLIERS.get(pipeline.getCommandAndParams() == null ?
         AggregateParams.TYPE : pipeline.getCommandAndParams().getType());
-    Object result = commandSupplier.build(pipeline, pipelineRunConfig, parameters, pojoClass).run();
+    Object result = commandSupplier.build(pipeline, pipelineRunContext, parameters, pojoClass).run();
 
     return mapFinalResult(result, returnContainerType);
   }

@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.mongopipe.core.runner.command;
+package org.mongopipe.core.migration;
 
-import org.mongopipe.core.config.PipelineRunContext;
 import org.mongopipe.core.model.Pipeline;
 
-import java.util.Map;
+import java.util.stream.Stream;
 
-@FunctionalInterface
-public interface CommandSupplier {
-  MongoCommand build(Pipeline pipeline, PipelineRunContext pipelineRunContext, Map<String, ?> parameters, Class returnPojoClass);
+public interface PipelineMigrationSource {
+  Stream<Pipeline> getPipelines();
 }

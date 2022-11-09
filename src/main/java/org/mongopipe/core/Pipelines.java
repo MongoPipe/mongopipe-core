@@ -17,6 +17,7 @@
 package org.mongopipe.core;
 
 import org.mongopipe.core.config.PipelineRunConfig;
+import org.mongopipe.core.config.PipelineRunContext;
 import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.mongopipe.core.runner.PipelineRepositoriesLoader;
 import org.mongopipe.core.runner.PipelineRunner;
@@ -31,28 +32,21 @@ import java.util.Map;
  * Factories for most of the API.
  */
 public class Pipelines {
-  public static final String DEFAULT_CONFIG_ID = "<configurationId>";
+  public static final String DEFAULT_CONTEXT_ID = "<configurationId>"; // If you want to use concurrently multiple MongoDB databases.
   private static final Logger LOG = LoggerFactory.getLogger(Pipelines.class);
-  private static Map<String, PipelineRunConfig> CONFIG_MAP = new HashMap<>();
+  private static Map<String, PipelineRunContext> RUN_CONTEXT = new HashMap<>();
   private static Map<String, PipelineStore> STORE_MAP = new HashMap<>();
   private static Map<String, PipelineRunner> RUNNER_MAP = new HashMap<>();
 
-  private static class PipelineRunConfigProxy extends PipelineRunConfig.Builder {
-    public PipelineRunConfig build() {
-      PipelineRunConfig pipelineRunConfig = super.build();
+  public static void registerConfig(PipelineRunConfig pipelineRunConfig) {
       if (pipelineRunConfig.getId() == null) {
-        pipelineRunConfig.setId(DEFAULT_CONFIG_ID);
+        pipelineRunConfig.setId(DEFAULT_CONTEXT_ID);
       }
-      if (CONFIG_MAP.containsKey(pipelineRunConfig.getId())) {
+      if (RUN_CONTEXT.containsKey(pipelineRunConfig.getId())) {
         LOG.warn("Overwriting existing configuration with the same id.");
       }
-      CONFIG_MAP.put(pipelineRunConfig.getId(), pipelineRunConfig);
-      return pipelineRunConfig;
-    }
-  }
-
-  public static PipelineRunConfig.Builder newConfig() {
-    return new PipelineRunConfigProxy();
+      PipelineRunContext pipelineRunContext = new PipelineRunContext(pipelineRunConfig, null);
+      RUN_CONTEXT.put(pipelineRunConfig.getId(), pipelineRunContext);
   }
 
   /**
@@ -81,11 +75,11 @@ public class Pipelines {
    * @return
    */
   public static PipelineStore getStore(String configurationId) {
-    PipelineRunConfig pipelineRunConfig = CONFIG_MAP.get(configurationId);
-    if (pipelineRunConfig == null) {
+    PipelineRunContext pipelineRunContext = RUN_CONTEXT.get(configurationId);
+    if (pipelineRunContext == null) {
       throw new MongoPipeConfigException("Mongo-pipe configuration is missing. Use 'Pipelines.newConfig()' for this.");
     }
-    PipelineStore pipelineStore = new PipelineStore(pipelineRunConfig);
+    PipelineStore pipelineStore = new PipelineStore(pipelineRunContext);
     STORE_MAP.put(configurationId, pipelineStore);
     return pipelineStore;
   }
@@ -94,7 +88,7 @@ public class Pipelines {
    * @returns the pipeline store that can be used to do CRUD operations on pipelines.
    */
   public static PipelineStore getStore() {
-    return getStore(DEFAULT_CONFIG_ID);
+    return getStore(DEFAULT_CONTEXT_ID);
   }
 
   public static PipelineRunner getRunner(String configurationId) {
@@ -102,25 +96,28 @@ public class Pipelines {
     if (pipelineRunner != null) {
       return pipelineRunner;
     }
-    PipelineRunConfig pipelineRunConfig = CONFIG_MAP.get(configurationId);
-    if (pipelineRunConfig == null) {
-      throw new MongoPipeConfigException("Create configuration first");
+    PipelineRunContext pipelineRunContext = RUN_CONTEXT.get(configurationId);
+    if (pipelineRunContext == null) {
+      throw new MongoPipeConfigException("Create and register configuration first");
     }
     PipelineStore pipelineStore = STORE_MAP.get(configurationId);
     if (pipelineStore == null) {
       pipelineStore = getStore(configurationId);
     }
-    pipelineRunner = new PipelineRunner(pipelineRunConfig, pipelineStore);
+    pipelineRunner = new PipelineRunner(pipelineRunContext, pipelineStore);
     RUNNER_MAP.put(configurationId, pipelineRunner);
     return pipelineRunner;
   }
 
   public static PipelineRunner getRunner() {
-    return getRunner(DEFAULT_CONFIG_ID);
+    return getRunner(DEFAULT_CONTEXT_ID);
   }
 
-  public static PipelineRunConfig getConfig(String configId) {
-    return CONFIG_MAP.get(configId);
+  public static PipelineRunContext getRunContext(String configId) {
+    return RUN_CONTEXT.get(configId);
+  }
+  public static PipelineRunContext getRunContext() {
+    return RUN_CONTEXT.get(DEFAULT_CONTEXT_ID);
   }
 
 }

@@ -16,7 +16,7 @@
 
 package org.mongopipe.core.store;
 
-import org.mongopipe.core.config.PipelineRunConfig;
+import org.mongopipe.core.config.PipelineRunContext;
 import org.mongopipe.core.fetcher.FetchCachedPipeline;
 import org.mongopipe.core.fetcher.FetchPipeline;
 import org.mongopipe.core.fetcher.FetchPipelineStore;
@@ -38,17 +38,17 @@ import static org.mongopipe.core.util.BsonUtil.toBsonList;
 public class PipelineStore {
   private static final Logger LOG = LoggerFactory.getLogger(PipelineStore.class);
 
-  private PipelineRunConfig pipelineRunConfig;
+  private PipelineRunContext pipelineRunContext;
   private final FetchPipeline<Pipeline> fetchPipeline;
   private ChangeNotifier changeNotifier = new ChangeNotifier();
 
-  public PipelineStore(PipelineRunConfig pipelineRunConfig) {
-    this.pipelineRunConfig = pipelineRunConfig;
+  public PipelineStore(PipelineRunContext pipelineRunContext) {
+    this.pipelineRunContext = pipelineRunContext;
 
     //check to update or not cache
-    FetchPipelineStore<Pipeline> cachePipelineStore = new FetchPipelineStore<>(pipelineRunConfig, Pipeline.class);
-    this.fetchPipeline =
-        pipelineRunConfig.isStoreCacheEnabled() ? new FetchCachedPipeline<>(cachePipelineStore) : cachePipelineStore;
+    FetchPipelineStore<Pipeline> cachePipelineStore = new FetchPipelineStore<>(pipelineRunContext, Pipeline.class);
+    this.fetchPipeline = pipelineRunContext.getPipelineRunConfig().isStoreCacheEnabled()
+        ? new FetchCachedPipeline<>(cachePipelineStore) : cachePipelineStore;
     changeNotifier.addListener((event) -> fetchPipeline.update());
   }
 
@@ -62,7 +62,7 @@ public class PipelineStore {
   public void createPipeline(Pipeline pipeline) {
     enhance(pipeline);
     // TODO: versioning, cache, exception if not found, etc
-    pipelineRunConfig.getMongoDatabase().getCollection(pipelineRunConfig.getStoreCollection(), Pipeline.class)
+    pipelineRunContext.getMongoDatabase().getCollection(pipelineRunContext.getPipelineRunConfig().getStoreCollection(), Pipeline.class)
         .insertOne(pipeline);
     changeNotifier.fire();
 

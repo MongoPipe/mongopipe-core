@@ -30,6 +30,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import junit.framework.TestCase;
 import org.mongopipe.core.Pipelines;
+import org.mongopipe.core.config.PipelineRunConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,12 +99,12 @@ public abstract class AbstractMongoDBTest extends TestCase {
 
   protected void newPipelinesConfig(String storeCollection, boolean cacheEnabled) {
     // Consider this helper versus @Before because it allows configuration.
-    Pipelines.newConfig()
+    Pipelines.registerConfig(PipelineRunConfig.builder()
         .uri("mongodb://localhost:" + PORT)
         .databaseName("test")
         .storeCollection(storeCollection)
         .storeCacheEnabled(cacheEnabled)
-        .repositoriesScanPackage("org.mongopipe")
-        .build();
+        .scanPackage("org.mongopipe")
+        .build());
   }
 }

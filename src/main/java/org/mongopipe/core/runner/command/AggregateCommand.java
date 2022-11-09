@@ -19,7 +19,7 @@ package org.mongopipe.core.runner.command;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Collation;
-import org.mongopipe.core.config.PipelineRunConfig;
+import org.mongopipe.core.config.PipelineRunContext;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.runner.command.param.AggregateParams;
 import org.mongopipe.core.runner.evaluation.BsonParameterEvaluator;
@@ -30,15 +30,15 @@ import java.util.concurrent.TimeUnit;
 
 public class AggregateCommand implements MongoCommand {
   private final Pipeline pipeline;
-  private final PipelineRunConfig pipelineRunConfig;
+  private final PipelineRunContext pipelineRunConfig;
   private final Map<String, ?> parameters;
   private final Class returnPojoClass;
   private final BsonParameterEvaluator bsonParameterEvaluator;
 
-  public AggregateCommand(Pipeline pipeline, PipelineRunConfig pipelineRunConfig, Map<String, ?> parameters, Class returnPojoClass) {
+  public AggregateCommand(Pipeline pipeline, PipelineRunContext pipelineRunContext, Map<String, ?> parameters, Class returnPojoClass) {
     this.pipeline = pipeline;
     this.parameters = parameters;
-    this.pipelineRunConfig = pipelineRunConfig;
+    this.pipelineRunConfig = pipelineRunContext;
     this.returnPojoClass = returnPojoClass;
     this.bsonParameterEvaluator = new BsonParameterEvaluator(parameters);
   }

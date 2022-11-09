@@ -22,7 +22,7 @@ import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
-import org.mongopipe.core.config.PipelineRunConfig;
+import org.mongopipe.core.config.PipelineRunContext;
 import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.runner.command.param.BaseUpdateParams;
@@ -38,14 +38,14 @@ import static org.mongopipe.core.util.BsonUtil.toBsonDocument;
  */
 public class UpdateOneCommand implements MongoCommand {
   private final Pipeline pipeline;
-  private final PipelineRunConfig pipelineRunConfig;
+  private final PipelineRunContext pipelineRunContext;
   private final Map<String, ?> parameters;
   private final Class returnPojoClass;
   BsonParameterEvaluator bsonParameterEvaluator;
 
-  public UpdateOneCommand(Pipeline pipeline, PipelineRunConfig pipelineRunConfig, Map<String, ?> parameters, Class returnPojoClass) {
+  public UpdateOneCommand(Pipeline pipeline, PipelineRunContext pipelineRunContext, Map<String, ?> parameters, Class returnPojoClass) {
     this.pipeline = pipeline;
-    this.pipelineRunConfig = pipelineRunConfig;
+    this.pipelineRunContext = pipelineRunContext;
     this.parameters = parameters;
     this.returnPojoClass = returnPojoClass;
     this.bsonParameterEvaluator = new BsonParameterEvaluator(parameters);
@@ -58,7 +58,7 @@ public class UpdateOneCommand implements MongoCommand {
 
   @Override
   public Object run() {
-    MongoCollection mongoCollection = pipelineRunConfig.getMongoDatabase().getCollection(pipeline.getCollection());
+    MongoCollection mongoCollection = pipelineRunContext.getMongoDatabase().getCollection(pipeline.getCollection());
 
     BaseUpdateParams baseUpdateParams = pipeline.getCommandAndParamsAs(BaseUpdateParams.class);
     BsonDocument filter = buildFilter(baseUpdateParams);

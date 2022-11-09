@@ -21,7 +21,7 @@ import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
-import org.mongopipe.core.config.PipelineRunConfig;
+import org.mongopipe.core.config.PipelineRunContext;
 import org.mongopipe.core.model.Pipeline;
 
 import java.util.List;
@@ -29,12 +29,11 @@ import java.util.Map;
 
 public class UpdateManyCommand extends UpdateOneCommand { // Add common base class in future.
 
-  public UpdateManyCommand(Pipeline pipeline, PipelineRunConfig pipelineRunConfig, Map<String, ?> parameters, Class returnPojoClass) {
-    super(pipeline, pipelineRunConfig, parameters, returnPojoClass);
+  public UpdateManyCommand(Pipeline pipeline, PipelineRunContext pipelineRunContext, Map<String, ?> parameters, Class returnPojoClass) {
+    super(pipeline, pipelineRunContext, parameters, returnPojoClass);
   }
 
-  public UpdateResult run(MongoCollection mongoCollection, BsonDocument filter, List<Bson> actualPipeline,
-                          UpdateOptions updateOptions) {
+  public UpdateResult run(MongoCollection mongoCollection, BsonDocument filter, List<Bson> actualPipeline,UpdateOptions updateOptions) {
     return mongoCollection.updateMany(filter, actualPipeline, updateOptions);
   }
 }

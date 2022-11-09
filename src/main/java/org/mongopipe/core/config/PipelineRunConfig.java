@@ -16,131 +16,51 @@
 
 package org.mongopipe.core.config;
 
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoDatabase;
-import org.mongopipe.core.exception.MongoPipeConfigException;
+import lombok.Builder;
+import lombok.Data;
 
 /**
- * Library main configuration. It establishes a Mongo connection unless MongoClient is provided.
+ * Library main configuration.
  * NOTE: Create one config per Mongo database.
  */
-public class PipelineRunConfig extends PipelineStoreConfig {
+@Data
+@Builder
+public class PipelineRunConfig {
   /**
-   * The {@link MongoClient} is configured by the user accordingly.
+   * Connection string URI for the Mongo database.
+   * NOTE: For custom database connection provide your own MongoClient to
+   * {@link org.mongopipe.core.config.PipelineRunContext#setMongoClient}
    */
-  MongoClient mongoClient;
-  private MongoDatabase mongoDatabase;
-
-  private PipelineRunConfig(Builder builder) {
-    mongoClient = builder.mongoClient;
-    uri = builder.uri;
-    databaseName = builder.databaseName;
-    id = builder.id;
-    pipelineInterfacesScanPackage = builder.pipelineInterfacesScanPackage;
-    storeCollection = builder.storeCollection;
-    storeCacheEnabled = builder.storeCacheEnabled;
-    migrationStatusCollection = builder.migrationStatusCollection;
-  }
-
-  public static Builder builder() {
-    return new Builder();
-  }
+  protected String uri;
+  /**
+   * Name of database on which pipelines are run. Required.
+   */
+  protected String databaseName;
 
   /**
-   * Creates the connection and returns the database connection.
+   * If having multiple databases then you will need to provide an "id" identifying each.
    */
-  public MongoDatabase getMongoDatabase() {
-    if (mongoClient == null) { // If user did not provided MongoClient, create one here.
-      if (getUri() == null) {
-        throw new MongoPipeConfigException("URI can not be null. Alternatively provide com.mongodb.client.MongoClient instance in this " +
-            "class constructor.");
-      }
-      ConnectionString connectionString = new ConnectionString(getUri());
-      MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
-          .applyConnectionString(connectionString)
-          .build();
-      mongoClient = MongoClients.create(mongoClientSettings);
-    }
-    if (mongoDatabase == null) {
-      // Alternatively you can set on the collection: collection.withCodecRegistry(pojoCodecRegistry)
-      mongoDatabase = mongoClient.getDatabase(getDatabaseName()).withCodecRegistry(PojoCodecConfig.getCodecRegistry());
-    }
+  protected String id;
 
-    return mongoDatabase;
-  }
+  /**
+   * The Java package where to look for interfaces with @PipelineRun annotations.
+   * This can be for example you application top package.
+   */
+  protected String scanPackage;
 
-  public static class Builder {
-    private String id;
-    private MongoClient mongoClient;
-    private String uri;
-    private String databaseName;
-    private String pipelineInterfacesScanPackage;
-    private String storeCollection;
-    private boolean storeCacheEnabled;
-    private String migrationStatusCollection;
+  /**
+   * Name of collection storing pipelines.
+   */
+  protected String storeCollection;
 
-    public Builder() {
-    }
+  /**
+   * If true then store provider should use local caching of the pipelines instead of hitting the database each time.
+   * By default is disabled meaning it will read from the database the pipeline before each execution.
+   */
+  protected boolean storeCacheEnabled;
 
-    /**
-     * Optional.
-     * This is more flexible since it allows you to configure your own connection parameters, codecs, etc.
-     **/
-    public Builder mongoClient(MongoClient val) {
-      mongoClient = val;
-      return this;
-    }
-
-    public Builder uri(String val) {
-      uri = val;
-      return this;
-    }
-
-    public Builder databaseName(String val) {
-      databaseName = val;
-      return this;
-    }
-
-    // The unique id identifying the configuration. Needs provided if using multiple configurations.
-    public Builder id(String val) {
-      id = val;
-      return this;
-    }
-
-    public Builder repositoriesScanPackage(String val) {
-      pipelineInterfacesScanPackage = val;
-      return this;
-    }
-
-    public Builder storeCollection(String val) {
-      storeCollection = val;
-      return this;
-    }
-
-    public Builder storeCacheEnabled(boolean val) {
-      storeCacheEnabled = val;
-      return this;
-    }
-
-    public Builder migrationStatusCollection(String val) {
-      migrationStatusCollection = val;
-      return this;
-    }
-
-    public PipelineRunConfig build() {
-      return new PipelineRunConfig(this);
-    }
-  }
-
-  public MongoClient getMongoClient() {
-    return mongoClient;
-  }
-
-  public void setMongoClient(MongoClient mongoClient) {
-    this.mongoClient = mongoClient;
-  }
-
+  /**
+   * MongoPipe status collection, used for storing org.mongopipe.core.migration status.
+   */
+  protected String migrationStatusCollection;
 }

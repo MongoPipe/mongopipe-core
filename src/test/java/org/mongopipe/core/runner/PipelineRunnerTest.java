@@ -21,10 +21,9 @@ import org.bson.conversions.Bson;
 import org.json.JSONException;
 import org.junit.Test;
 import org.mongopipe.core.Pipelines;
-import org.mongopipe.core.annotation.Param;
-import org.mongopipe.core.annotation.PipelineRun;
-import org.mongopipe.core.annotation.PipelineRunners;
+import org.mongopipe.core.config.PipelineRunConfig;
 import org.mongopipe.core.model.Pipeline;
+import org.mongopipe.core.store.MyRestaurant;
 import org.mongopipe.core.util.AbstractMongoDBTest;
 import org.mongopipe.core.util.Maps;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -47,28 +46,15 @@ import static org.mongopipe.core.util.TestUtil.*;
 public class PipelineRunnerTest extends AbstractMongoDBTest {
   private static final Logger LOG = LoggerFactory.getLogger(PipelineRunnerTest.class);
 
-
-  @PipelineRunners  // Optional, TODO: unit test.
-  public interface MyRestaurant {
-
-    @PipelineRun("pipelineOne")
-    List<Document> runMyFirstPipeline(@Param("pizzaSize") String pizzaSize);  // TODO: Test with result Pojo class to check conversion, will need to be implemented.
-
-    @PipelineRun("matchingPizzasBySize")
-    List<Pizza> getMatchingPizzas(@Param("pizzaSize") String pizzaSize);
-
-  }
-
-
   public void newPipelinesConfig(String storeCollection, boolean cacheEnabled) {
     // Consider this helper versus @Before because it allows configuration.
-    Pipelines.newConfig()
+    Pipelines.registerConfig(PipelineRunConfig.builder()
             .uri("mongodb://localhost:" + PORT)
             .databaseName("test")
             .storeCollection(storeCollection)
-            .repositoriesScanPackage("org.mongopipe")
+            .scanPackage("org.mongopipe")
             .storeCacheEnabled(cacheEnabled)
-            .build();
+            .build());
   }
 
   @Test

@@ -2,7 +2,7 @@ package org.mongopipe.core.fetcher;
 
 import com.mongodb.client.MongoCollection;
 import lombok.AllArgsConstructor;
-import org.mongopipe.core.config.PipelineRunConfig;
+import org.mongopipe.core.config.PipelineRunContext;
 import org.mongopipe.core.model.PipelineBase;
 
 import java.util.List;
@@ -14,7 +14,7 @@ import static com.mongodb.client.model.Filters.eq;
 @AllArgsConstructor
 public class FetchPipelineStore<T extends PipelineBase> implements FetchPipeline<T> {
 
-    private final PipelineRunConfig pipelineRunConfig;
+    private final PipelineRunContext pipelineRunContext;
     private final Class<T> classType;
 
     @Override
@@ -29,7 +29,8 @@ public class FetchPipelineStore<T extends PipelineBase> implements FetchPipeline
     }
 
     private MongoCollection<T> getCollection() {
-        return pipelineRunConfig.getMongoDatabase().getCollection(pipelineRunConfig.getStoreCollection(), classType);
+        return pipelineRunContext.getMongoDatabase().getCollection(pipelineRunContext.getPipelineRunConfig().getStoreCollection(),
+            classType);
     }
 
 

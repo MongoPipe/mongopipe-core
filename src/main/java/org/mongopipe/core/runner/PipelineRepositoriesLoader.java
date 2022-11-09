@@ -21,6 +21,7 @@ import org.mongopipe.core.annotation.Param;
 import org.mongopipe.core.annotation.PipelineRun;
 import org.mongopipe.core.annotation.PipelineRunners;
 import org.mongopipe.core.config.PipelineRunConfig;
+import org.mongopipe.core.config.PipelineRunContext;
 import org.mongopipe.core.exception.MissingPipelineParamAnnotationException;
 import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.mongopipe.core.store.PipelineStore;
@@ -45,11 +46,12 @@ public class PipelineRepositoriesLoader {
   public static Set<Method> getPipelineAnnotatedMethods(PipelineRunConfig pipelineRunConfig){
 
     Collection<URL> urls;
-    if (pipelineRunConfig.getRepositoriesScanPackage() == null) {
+    String scanPackage = pipelineRunConfig.getScanPackage();
+    if (scanPackage == null) {
       //urls = ClasspathHelper.forJavaClassPath();
-      throw new MongoPipeConfigException("Need to provide scan package for pipeline repositories");
+      throw new MongoPipeConfigException("Need to provide scan package for pipeline repositories. This can be for example you app top package.");
     } else {
-      urls = ClasspathHelper.forPackage(pipelineRunConfig.getRepositoriesScanPackage());
+      urls = ClasspathHelper.forPackage(scanPackage);
     }
     // Works with both 0.9.12 and 0.10.2
     Reflections reflections = new Reflections(new ConfigurationBuilder()
@@ -59,16 +61,16 @@ public class PipelineRepositoriesLoader {
     //reflections.getTypesAnnotatedWith(PipelineRepository.class);
     Set<Method> pipelineRunMethods = reflections.getMethodsAnnotatedWith(PipelineRun.class);
     if (pipelineRunMethods.size() == 0) {
-      throw new MongoPipeConfigException("No pipeline annotated methods found in packages under \""
-          + pipelineRunConfig.getRepositoriesScanPackage() + "\". Check that the configuration");
+      throw new MongoPipeConfigException("No pipeline annotated methods found in packages under \"" + scanPackage +
+          "\". Check that the configuration");
     }
     return pipelineRunMethods;
   }
 
-  public static void createPipelineRepositoriesProxies(PipelineRunConfig pipelineRunConfig) {
+  public static void createPipelineRepositoriesProxies(PipelineRunContext pipelineRunContext) {
     Set<Class> pipelineRepositories = new HashSet<>();
 
-    for (Method method : getPipelineAnnotatedMethods(pipelineRunConfig)) {
+    for (Method method : getPipelineAnnotatedMethods(pipelineRunContext.getPipelineRunConfig())) {
       validateAnnotations(method);
       if (!pipelineRepositories.contains(method.getDeclaringClass())) {
         pipelineRepositories.add(method.getDeclaringClass());
@@ -76,7 +78,7 @@ public class PipelineRepositoriesLoader {
     }
 
     for (Class pipelineRepositoryClass : pipelineRepositories) {
-      String configurationId = Pipelines.DEFAULT_CONFIG_ID;
+      String configurationId = Pipelines.DEFAULT_CONTEXT_ID;
 
       if (pipelineRepositoryClass.isAnnotationPresent(PipelineRunners.class)) {
         configurationId = ((PipelineRunners)pipelineRepositoryClass.getAnnotation(PipelineRunners.class)).configurationId();
@@ -112,19 +114,19 @@ public class PipelineRepositoriesLoader {
     Object repository = REPOSITORIES.get(pipelineRepositoryInterface);
     if (repository == null) {
       // Load it now, test if it has annotated methods or class annotation
-      String configId = Pipelines.DEFAULT_CONFIG_ID;
+      String configId = Pipelines.DEFAULT_CONTEXT_ID;
       if (pipelineRepositoryInterface.isAnnotationPresent(PipelineRunners.class)) {
         configId = pipelineRepositoryInterface.getAnnotation(PipelineRunners.class).configurationId();
       }
-      PipelineRunConfig pipelineRunConfig = Pipelines.getConfig(configId);
+      PipelineRunContext pipelineRunContext = Pipelines.getRunContext(configId);
 
-      //getPipelineAnnotatedMethods(pipelineRunConfig);
-      createPipelineRepositoriesProxies(pipelineRunConfig);
+      createPipelineRepositoriesProxies(pipelineRunContext);
     }
 
     repository = REPOSITORIES.get(pipelineRepositoryInterface);
     if (repository == null) {
-      throw new MongoPipeConfigException("Repository was not configured, probably because interface is missing @PipelineRun annotated methods");
+      throw new MongoPipeConfigException("Repository was not configured. Check that you have @PipelineRun annotated methods and configured"
+          + " pipeline scan package is correct.");
     }
     return (T)repository;
   }

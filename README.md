@@ -26,9 +26,8 @@ Pipelines.newConfig()
   .build();
 ```
 
-### 2. Your own `@PipelineRunners`:
+### 2. Name your own `@PipelineRun` methods:
 ```java
-@PipelineRunners
 public interface MyRestaurant {
     @PipelineRun("getPizzaOrdersBySize")
     Stream<PizzaOrders> getPizzaOrdersBySize(@Param("pizzaSize") String pizzaSize);
