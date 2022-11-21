@@ -16,8 +16,10 @@
 
 package org.mongopipe.core.config;
 
+import com.mongodb.client.MongoClient;
 import lombok.Builder;
 import lombok.Data;
+import org.mongopipe.core.runner.context.RunContext;
 
 /**
  * Library main configuration.
@@ -25,13 +27,19 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class PipelineRunConfig {
+public class MongoPipeConfig {
   /**
    * Connection string URI for the Mongo database.
    * NOTE: For custom database connection provide your own MongoClient to
-   * {@link org.mongopipe.core.config.PipelineRunContext#setMongoClient}
+   * {@link RunContext#setMongoClient}
    */
   protected String uri;
+
+  /**
+   * As alternative to providing the "uri", provide a MongoClient (including using certificates and other options).
+   */
+  protected MongoClient mongoClient;
+
   /**
    * Name of database on which pipelines are run. Required.
    */
@@ -43,24 +51,25 @@ public class PipelineRunConfig {
   protected String id;
 
   /**
-   * The Java package where to look for interfaces with @PipelineRun annotations.
-   * This can be for example you application top package.
-   */
-  protected String scanPackage;
-
-  /**
    * Name of collection storing pipelines.
    */
-  protected String storeCollection;
+  @Builder.Default
+  protected String storeCollection = "pipeline_store";
 
+  /**
+   * If "true" when a pipeline is updated or deleted the old pipeline is moved into the pipeline_store_history collection.
+   */
+  protected boolean storeHistoryEnabled;
+
+  @Builder.Default
+  protected String storeHistoryCollection = "pipeline_store_history";
+
+  @Builder.Default
+  protected String statusCollection = "pipeline_status";
   /**
    * If true then store provider should use local caching of the pipelines instead of hitting the database each time.
    * By default is disabled meaning it will read from the database the pipeline before each execution.
    */
   protected boolean storeCacheEnabled;
 
-  /**
-   * MongoPipe status collection, used for storing org.mongopipe.core.migration status.
-   */
-  protected String migrationStatusCollection;
 }

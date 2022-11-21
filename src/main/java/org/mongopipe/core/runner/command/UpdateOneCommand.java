@@ -22,7 +22,7 @@ import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
-import org.mongopipe.core.config.PipelineRunContext;
+import org.mongopipe.core.runner.context.RunContext;
 import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.runner.command.param.BaseUpdateParams;
@@ -38,29 +38,28 @@ import static org.mongopipe.core.util.BsonUtil.toBsonDocument;
  */
 public class UpdateOneCommand implements MongoCommand {
   private final Pipeline pipeline;
-  private final PipelineRunContext pipelineRunContext;
+  private final RunContext runContext;
   private final Map<String, ?> parameters;
   private final Class returnPojoClass;
   BsonParameterEvaluator bsonParameterEvaluator;
 
-  public UpdateOneCommand(Pipeline pipeline, PipelineRunContext pipelineRunContext, Map<String, ?> parameters, Class returnPojoClass) {
+  public UpdateOneCommand(Pipeline pipeline, RunContext runContext, Map<String, ?> parameters, Class returnPojoClass) {
     this.pipeline = pipeline;
-    this.pipelineRunContext = pipelineRunContext;
+    this.runContext = runContext;
     this.parameters = parameters;
     this.returnPojoClass = returnPojoClass;
     this.bsonParameterEvaluator = new BsonParameterEvaluator(parameters);
   }
 
-  public UpdateResult run(MongoCollection mongoCollection, BsonDocument filter, List<Bson> actualPipeline,
-      UpdateOptions updateOptions) {
+  public UpdateResult run(MongoCollection mongoCollection, Bson filter, List<Bson> actualPipeline, UpdateOptions updateOptions) {
     return mongoCollection.updateOne(filter, actualPipeline, updateOptions);
   }
 
   @Override
   public Object run() {
-    MongoCollection mongoCollection = pipelineRunContext.getMongoDatabase().getCollection(pipeline.getCollection());
+    MongoCollection mongoCollection = runContext.getMongoDatabase().getCollection(pipeline.getCollection());
 
-    BaseUpdateParams baseUpdateParams = pipeline.getCommandAndParamsAs(BaseUpdateParams.class);
+    BaseUpdateParams baseUpdateParams = pipeline.getCommandOptionsAs(BaseUpdateParams.class);
     BsonDocument filter = buildFilter(baseUpdateParams);
     List actualPipeline = bsonParameterEvaluator.evaluate(pipeline.getPipeline());
 

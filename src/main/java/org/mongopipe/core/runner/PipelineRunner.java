@@ -18,31 +18,32 @@ package org.mongopipe.core.runner;
 
 
 import org.bson.Document;
-import org.mongopipe.core.config.PipelineRunContext;
+import org.mongopipe.core.Stores;
 import org.mongopipe.core.exception.MongoPipeConfigException;
+import org.mongopipe.core.exception.MongoPipeRunException;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.runner.command.*;
 import org.mongopipe.core.runner.command.param.AggregateParams;
-import org.mongopipe.core.runner.command.param.FindOneAndUpdateParams;
-import org.mongopipe.core.runner.command.param.UpdateManyParams;
-import org.mongopipe.core.runner.command.param.UpdateOneParams;
+import org.mongopipe.core.runner.command.param.FindOneAndUpdateOptions;
+import org.mongopipe.core.runner.command.param.UpdateManyOptions;
+import org.mongopipe.core.runner.command.param.UpdateOneOptions;
+import org.mongopipe.core.runner.context.RunContext;
 import org.mongopipe.core.store.PipelineStore;
+import org.mongopipe.core.util.BsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static org.mongopipe.core.util.ReflectionsUtil.getMethodGenericType;
+
 /**
- * Used as an alternative to pipeline repositories (interface classes and @PipelineRun annotations) to generically run pipelines.
- * Use the {@link org.mongopipe.core.Pipelines} class to create a runner. A runner is thread safe and does not need to be recreated.
+ * Used as an alternative to store classes (annotated with @Store) to generically run pipelines.
+ * Use the {@link Stores} class to create a runner. A runner is thread safe and does not need to be recreated.
  */
 public class PipelineRunner {
   private static final Logger LOG = LoggerFactory.getLogger(PipelineRunner.class);
@@ -50,101 +51,166 @@ public class PipelineRunner {
 
   // Consider also allowing the calling directly the driver API with the evaluated pipeline, in future.
   static {
-    SUPPLIERS.put(AggregateParams.TYPE, (pipelineRun, pipelineRunConfig, parameters, returnPojoClass) ->
-        new AggregateCommand(pipelineRun, pipelineRunConfig, parameters, returnPojoClass));
-    SUPPLIERS.put(UpdateOneParams.TYPE, (pipelineRun, pipelineRunConfig, parameters, returnPojoClass) ->
-        new UpdateOneCommand(pipelineRun, pipelineRunConfig, parameters, returnPojoClass));
-    SUPPLIERS.put(UpdateManyParams.TYPE, (pipelineRun, pipelineRunConfig, parameters, returnPojoClass) ->
-        new UpdateManyCommand(pipelineRun, pipelineRunConfig, parameters, returnPojoClass));
-    SUPPLIERS.put(FindOneAndUpdateParams.TYPE, (pipelineRun, pipelineRunConfig, parameters, returnPojoClass) ->
-        new FindOneAndUpdateCommand(pipelineRun, pipelineRunConfig, parameters, returnPojoClass));
+    SUPPLIERS.put(AggregateParams.TYPE, (pipelineRun, context, parameters, returnPojoClass) ->
+        new AggregateCommand(pipelineRun, context, parameters, returnPojoClass));
+    SUPPLIERS.put(UpdateOneOptions.TYPE, (pipelineRun, context, parameters, returnPojoClass) ->
+        new UpdateOneCommand(pipelineRun, context, parameters, returnPojoClass));
+    SUPPLIERS.put(UpdateManyOptions.TYPE, (pipelineRun, context, parameters, returnPojoClass) ->
+        new UpdateManyCommand(pipelineRun, context, parameters, returnPojoClass));
+    SUPPLIERS.put(FindOneAndUpdateOptions.TYPE, (pipelineRun, context, parameters, returnPojoClass) ->
+        new FindOneAndUpdateCommand(pipelineRun, context, parameters, returnPojoClass));
   }
 
-  private PipelineRunContext pipelineRunContext;
+  private RunContext runContext;
   private PipelineStore pipelineStore;
 
-  public PipelineRunner(PipelineRunContext pipelineRunContext, PipelineStore pipelineStore) {
-    this.pipelineRunContext = pipelineRunContext;
+  public PipelineRunner(RunContext runContext, PipelineStore pipelineStore) {
+    this.runContext = runContext;
     this.pipelineStore = pipelineStore;
   }
 
-  private <T> T run(Pipeline pipeline, Class returnPojoType, Class<T> returnContainerType, Map<String, ?> parameters) {
+  /**
+   * Allows running a pipeline event if it was not previously stored with PipelineStore in the db.
+   * @param pipeline
+   * @param returnClass
+   * @param returnContainerClass  In case return type is a List, Iterable, Stream, etc
+   * @param parameters  Pipeline runtime parameters that replace the $paramName variables from the pipeline.
+   * @param <T>
+   * @return
+   */
+  public <T> T run(Pipeline pipeline, Class returnClass, Class<T> returnContainerClass, Map<String, ?> parameters) {
     validate(pipeline);
-    Class pojoClass = returnPojoType != null ? returnPojoType : Document.class;
-    if (pipeline.getResultClass() != null) {
-      try {
-        pojoClass = Class.forName(pipeline.getResultClass());
-      } catch (ClassNotFoundException e) {
-        LOG.error(e.getMessage(), e);
-      }
+    if (Arrays.asList(List.class, Stream.class, Iterable.class).contains(returnClass)) {
+      returnContainerClass = returnClass;
+      returnClass = Document.class;
     }
-    CommandSupplier commandSupplier = SUPPLIERS.get(pipeline.getCommandAndParams() == null ?
-        AggregateParams.TYPE : pipeline.getCommandAndParams().getType());
-    Object result = commandSupplier.build(pipeline, pipelineRunContext, parameters, pojoClass).run();
+    Class pojoClass = returnClass != null ? returnClass : Document.class;
+    CommandSupplier commandSupplier = SUPPLIERS.get(pipeline.getCommandOptions() == null ?
+        AggregateParams.TYPE : pipeline.getCommandOptions().getType());
+    Object result = commandSupplier.build(pipeline, runContext, parameters == null ? Collections.emptyMap() : parameters,
+        pojoClass).run();
 
-    return mapFinalResult(result, returnContainerType);
+    return mapFinalResult(result, returnClass, returnContainerClass);
   }
 
-  private void validate(Pipeline pipeline) {
-    if (pipeline.getCollection() == null) {
-      throw new MongoPipeConfigException("collectionName can not be null");
-    }
+  /**
+   * @see PipelineRunner#run(Pipeline, Class, Class, Map)
+   */
+  public <T> T run(Pipeline pipeline, Class<T> returnClass, Map<String, ?> parameters) {
+    return run(pipeline, returnClass, null, parameters);
+  }
+  public <T> T run(Pipeline pipeline, Class<T> returnClass) {
+    return run(pipeline, returnClass, null, Collections.emptyMap());
   }
 
-  private <T> T mapFinalResult(Object result, Class<T> returnContainerType) {
-    if (Void.class.equals(returnContainerType.getClass())) {
-      return null;
-    }
-    if (returnContainerType == null) {
-      return (T) result;
-    }
-    if (List.class.equals(returnContainerType)) {
-      if (result instanceof Iterable) {
-        return (T) StreamSupport.stream(((Iterable) result).spliterator(), false)
-            .collect(Collectors.toList());
-      } else {
-        throw new MongoPipeConfigException("Return type of pipeline interface method should be of type List<PojoClass> or List<Document>");
-      }
-    }
-    if (Iterable.class.equals(returnContainerType)) {
-      if (result instanceof Iterable) {
-        return (T) result;
-      } else {
-        throw new MongoPipeConfigException("Return type of pipeline interface method should be of type Iterable");
-      }
-    } else if (Stream.class.equals(returnContainerType)) {
-      if (result instanceof Iterable) {
-        return (T) StreamSupport.stream(((Iterable) result).spliterator(), false);
-      } else {
-        return (T) Stream.of(result);
-      }
+  private <T> T map(Object result, Class<T> resultClass) {
+    if (result instanceof Document) {
+      return BsonUtil.toPojo(((Document)result).toBsonDocument(), resultClass);
     } else {
       return (T) result;
     }
   }
 
-  public <T> Stream<T> run(String pipelineId, Class<T> returnClass, Map<String, ?> parameters) {
-    return run(pipelineStore.getPipeline(pipelineId), returnClass, Stream.class, parameters);
+  private <T> T mapFinalResult(Object result, Class resultClass, Class<T> returnContainerClass) {
+    if (result == null) {
+      return (T) result;
+    }
+    if (Void.class.equals(returnContainerClass)) {
+      return null;
+    }
+
+    if (returnContainerClass == null) {
+      return (T)map(result, resultClass);
+    } else {
+      if (List.class.equals(returnContainerClass)) {
+        if (result instanceof Iterable) {
+          return (T) StreamSupport.stream(((Iterable) result).spliterator(), false)
+              .collect(Collectors.toList());
+        } else {
+          return (T) map(result, resultClass);
+        }
+      }
+
+      if (Iterable.class.equals(returnContainerClass)) {
+        if (result instanceof Iterable) {
+          return (T) result;
+        } else {
+          throw new MongoPipeConfigException("Return type of pipeline interface method should be of type Iterable");
+        }
+      }
+
+      if (Stream.class.equals(returnContainerClass)) {
+        if (result instanceof Iterable) {
+          return (T) StreamSupport.stream(((Iterable) result).spliterator(), false);
+        } else {
+          return (T) Stream.of(result);
+        }
+      }
+      return (T) result;
+    }
   }
 
-  public Stream<Document> run(String pipelineId, Map<String, ?> parameters) {
+  /**
+   * Runs a pipeline by id.
+   * @param pipelineId
+   * @param returnClass
+   * @param containerClass  A container class e.g. Stream.class, List.class, Iterable.class.
+   * @param parameters
+   * @param <T>
+   * @return
+   */
+  public <T> T run(String pipelineId, Class returnClass, Class<T> containerClass, Map<String, ?> parameters) {
+    return run(pipelineStore.getPipeline(pipelineId), returnClass, containerClass, parameters);
+  }
+
+  public <T> T run(String pipelineId, Class<T> returnClass, Map<String, ?> parameters) {
+    return run(pipelineStore.getPipeline(pipelineId), returnClass, null, parameters);
+  }
+
+  public <T> T run(String pipelineId, Class<T> returnClass) {
+    return run(pipelineStore.getPipeline(pipelineId), returnClass, null, Collections.emptyMap());
+  }
+
+  public Stream<Document> runAndStream(String pipelineId, Map<String, ?> parameters) {
     return run(pipelineStore.getPipeline(pipelineId), Document.class, Stream.class, parameters);
   }
 
+  public <T> Stream<T> runAndStream(String pipelineId, Class<T> elementClass, Map<String, ?> parameters) {
+    return run(pipelineStore.getPipeline(pipelineId), elementClass, Stream.class, parameters);
+  }
+
+
+  public List<Document> runAndList(String pipelineId, Map<String, ?> parameters) {
+    return run(pipelineStore.getPipeline(pipelineId), null, List.class, parameters);
+  }
+
+  public <T> List<T> runAndList(String pipelineId, Class<T> elementClass, Map<String, ?> parameters) {
+    return run(pipelineStore.getPipeline(pipelineId), elementClass, List.class, parameters);
+  }
+
+
   public <T> T run(String pipelineId, Map<String, ?> parameters, Class<T> returnClass) {
-    return run(pipelineStore.getPipeline(pipelineId), returnClass, returnClass, parameters);
+    return (T) run(pipelineStore.getPipeline(pipelineId), returnClass, getContainerReturnType(returnClass), parameters);
+  }
+
+  private Class getContainerReturnType(Class containerType) {
+    // Currently can map only to this containers.
+    return Arrays.asList(List.class, Stream.class, Iterable.class).contains(containerType) ? containerType : null;
   }
 
   protected <T> T run(String pipelineId, Method pipelineRunMethod, Map<String, ?> parameters) {
-    // https://stackoverflow.com/questions/3403909/get-generic-type-of-class-at-runtime
-    Class returnPojoClass = pipelineRunMethod.getReturnType();
-    if (pipelineRunMethod.getGenericReturnType() instanceof ParameterizedType) {
-      ParameterizedType parameterizedType = (ParameterizedType)pipelineRunMethod.getGenericReturnType();
-      Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-      if (actualTypeArguments.length > 0 && actualTypeArguments[0] instanceof Class) {
-        returnPojoClass = (Class) actualTypeArguments[0];
-      }
+    Pipeline pipeline = pipelineStore.getPipeline(pipelineId);
+    if (pipeline == null) {
+      throw new MongoPipeRunException("Pipeline not found in store(database) for id: " + pipelineId);
     }
-    return (T) run(pipelineStore.getPipeline(pipelineId), returnPojoClass, pipelineRunMethod.getReturnType(), parameters);
+    return (T) run(pipeline, getMethodGenericType(pipelineRunMethod), getContainerReturnType(pipelineRunMethod.getReturnType()),
+        parameters);
+  }
+
+  private void validate(Pipeline pipeline) {
+    // Allow running pipelines without an id, to make the api easier to use, and for pipelines not previously saved in db.
+    if (pipeline.getCollection() == null) {
+      throw new MongoPipeConfigException("Collection name can not be null");
+    }
   }
 }

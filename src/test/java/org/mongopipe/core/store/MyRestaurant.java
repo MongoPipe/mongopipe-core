@@ -19,20 +19,21 @@ package org.mongopipe.core.store;
 import org.bson.Document;
 import org.mongopipe.core.annotation.Param;
 import org.mongopipe.core.annotation.PipelineRun;
-import org.mongopipe.core.runner.Pizza;
+import org.mongopipe.core.annotation.Store;
+import org.mongopipe.core.model.Pizza;
 
 import java.util.List;
 
+@Store
 public interface MyRestaurant {
 
   @PipelineRun("pipelineOne")
-  List<Document> runMyFirstPipeline(@Param("pizzaSize") String pizzaSize);
+  List<Document> runMyFirstPipeline(String pizzaSize);
 
-  @PipelineRun("matchingPizzasBySize")
-  List<Pizza> getMatchingPizzas(@Param("pizzaSize") String pizzaSize);
+  List<Pizza> matchingPizzasBySize(@Param("pizzaSize") String pizzaSize);
 
   @PipelineRun("matchingPizzasByPrice")
-  List<Pizza> getMatchingPizzasByPrice(@Param("pizzaPrice") Double price);
+  List<Pizza> getMatchingPizzasByPrice(Double price);
 
   @PipelineRun("updateOneMatchingPizza")
   Long updateOnePizzaByPizzaPrice(@Param("pizzaPrice") Integer pizzaPrice);

@@ -18,23 +18,31 @@ package org.mongopipe.core.runner.command.param;
 
 import org.bson.Document;
 import org.bson.codecs.pojo.annotations.BsonDiscriminator;
+import org.bson.conversions.Bson;
+import org.mongopipe.core.util.BsonUtil;
 
 import java.util.List;
 
-import static org.mongopipe.core.runner.command.param.CommandAndParams.TYPE_KEY;
+import static org.mongopipe.core.runner.command.param.CommandOptions.TYPE_KEY;
+import static org.mongopipe.core.util.BsonUtil.toDocument;
 
 /**
  * Stores parameters for <a href="https://www.mongodb.com/docs/manual/reference/method/db.collection.findOneAndUpdate/">findOneAndUpdate</a>.
  */
-@BsonDiscriminator(value = FindOneAndUpdateParams.TYPE, key = TYPE_KEY)
-public class FindOneAndUpdateParams extends BaseFindUpdateParams {
+@BsonDiscriminator(value = FindOneAndUpdateOptions.TYPE, key = TYPE_KEY)
+public class FindOneAndUpdateOptions extends BaseFindUpdateParams {
   public static final String TYPE = "findOneAndUpdate";
   private final String type = TYPE;
 
-  public FindOneAndUpdateParams() {
+  public FindOneAndUpdateOptions() {
   }
 
-  private FindOneAndUpdateParams(Builder builder) {
+  @Override
+  public String getType() {
+    return type;
+  }
+
+  private FindOneAndUpdateOptions(Builder builder) {
     setFilter(builder.filter);
     setProjection(builder.projection);
     setSort(builder.sort);
@@ -42,6 +50,7 @@ public class FindOneAndUpdateParams extends BaseFindUpdateParams {
     setUpsert(builder.upsert);
     setReturnDocument(builder.returnDocument);
     setReturnNewDocument(builder.returnNewDocument);
+    setUpdateDocument(builder.updateDocument);
     setCollation(builder.collation);
     setArrayFilters(builder.arrayFilters);
   }
@@ -50,10 +59,6 @@ public class FindOneAndUpdateParams extends BaseFindUpdateParams {
     return new Builder();
   }
 
-  @Override
-  public String getType() {
-    return type;
-  }
 
   public static final class Builder {
     private Document filter;
@@ -62,7 +67,8 @@ public class FindOneAndUpdateParams extends BaseFindUpdateParams {
     private Long maxTimeMS;
     private Boolean upsert;
     private String returnDocument;
-    private Boolean returnNewDocument;
+    private Boolean returnNewDocument = true;
+    private Bson updateDocument;
     private Collation collation;
     private List<Document> arrayFilters;
 
@@ -71,6 +77,11 @@ public class FindOneAndUpdateParams extends BaseFindUpdateParams {
 
     public Builder filter(Document val) {
       filter = val;
+      return this;
+    }
+
+    public Builder filter(Bson val) {
+      filter = toDocument(val);
       return this;
     }
 
@@ -104,6 +115,16 @@ public class FindOneAndUpdateParams extends BaseFindUpdateParams {
       return this;
     }
 
+    public Builder updateDocument(Document val) {
+      updateDocument = val;
+      return this;
+    }
+
+    public Builder updatePojo(Object pojo) {
+      updateDocument = BsonUtil.toBsonDocument(pojo);
+      return this;
+    }
+
     public Builder collation(Collation val) {
       collation = val;
       return this;
@@ -114,8 +135,8 @@ public class FindOneAndUpdateParams extends BaseFindUpdateParams {
       return this;
     }
 
-    public FindOneAndUpdateParams build() {
-      return new FindOneAndUpdateParams(this);
+    public FindOneAndUpdateOptions build() {
+      return new FindOneAndUpdateOptions(this);
     }
   }
 }

@@ -20,7 +20,7 @@ import org.bson.Document;
 
 import java.util.List;
 
-public abstract class BaseUpdateParams implements CommandAndParams {
+public abstract class BaseUpdateParams extends CommandOptions {
   protected Document filter;
   protected Boolean upsert;
   protected String hint;

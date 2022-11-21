@@ -1,37 +1,28 @@
 package org.mongopipe.core.fetcher;
 
-import com.mongodb.client.MongoCollection;
 import lombok.AllArgsConstructor;
-import org.mongopipe.core.config.PipelineRunContext;
-import org.mongopipe.core.model.PipelineBase;
+import org.mongopipe.core.model.Pipeline;
+import org.mongopipe.core.store.PipelineCrudStore;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static com.mongodb.client.model.Filters.eq;
-
 @AllArgsConstructor
-public class FetchPipelineStore<T extends PipelineBase> implements FetchPipeline<T> {
+public class FetchPipelineStore implements FetchPipeline {
 
-    private final PipelineRunContext pipelineRunContext;
-    private final Class<T> classType;
+  private final PipelineCrudStore crudStore;
 
-    @Override
-    public List<T> getAll() {
-        return StreamSupport.stream(getCollection().find().spliterator(), false)
-                .collect(Collectors.toList());
-    }
+  @Override
+  public List<Pipeline> getAll() {
+    return StreamSupport.stream(crudStore.findAll().spliterator(), false)
+        .collect(Collectors.toList());
+  }
 
-    @Override
-    public T getById(String id) {
-        return getCollection().find(eq("_id", id)).first();
-    }
-
-    private MongoCollection<T> getCollection() {
-        return pipelineRunContext.getMongoDatabase().getCollection(pipelineRunContext.getPipelineRunConfig().getStoreCollection(),
-            classType);
-    }
+  @Override
+  public Pipeline getById(String id) {
+    return crudStore.findById(id).orElse(null);
+  }
 
 
 }

@@ -17,21 +17,23 @@
 package org.mongopipe.core.runner.command.param;
 
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.util.List;
 
-public abstract class BaseFindUpdateParams implements CommandAndParams {
+public abstract class BaseFindUpdateParams extends CommandOptions {
   private Document filter;
   private Document projection;
   private Document sort;
   private Long maxTimeMS;
   private Boolean upsert;
   private String returnDocument;
-  private Boolean returnNewDocument;
+  private Boolean returnNewDocument = true;
+  private Bson updateDocument; // The update document. If provided then pipeline will be ignored.
   private Collation collation;
   private List<Document> arrayFilters;
 
-  public Document getFilter() {
+  public Bson getFilter() {
     return filter;
   }
 
@@ -102,4 +104,13 @@ public abstract class BaseFindUpdateParams implements CommandAndParams {
   public void setArrayFilters(List<Document> arrayFilters) {
     this.arrayFilters = arrayFilters;
   }
+
+  public Bson getUpdateDocument() {
+    return updateDocument;
+  }
+
+  public void setUpdateDocument(Bson updateDocument) {
+    this.updateDocument = updateDocument;
+  }
+
 }

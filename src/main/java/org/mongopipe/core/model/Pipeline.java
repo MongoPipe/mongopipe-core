@@ -17,37 +17,32 @@
 package org.mongopipe.core.model;
 
 import org.bson.BsonDocument;
-import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.conversions.Bson;
-import org.mongopipe.core.runner.PipelineRunner;
-import org.mongopipe.core.runner.command.param.CommandAndParams;
+import org.mongopipe.core.runner.command.param.CommandOptions;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.mongopipe.core.util.BsonUtil.toBsonList;
+
 /**
  * Stores both the pipeline and the running context (target collection, type of collection method and params).
  * NOTE: It does not store the actual pipeline variables values. Those are provided when the pipeline is actually executed:
- *  <code>pizzaRepository.getPizzas("Medium")</code> or <code>pipelineRunner.run("pizzaPipelineId", "Medium")</code>
+ *  <code>pizzaStore.getPizzas("Medium")</code> or <code>pipelineRunner.run("pizzaPipelineId", "Medium")</code>
  * You can create a Pipeline multiple ways:
  *   - pipelineStore.create
  *   - via classpath files
+ * No return type of the pipeline is provided since that would tie to implementation and restrict refactoring.
  */
-public class Pipeline extends PipelineBase {
-  /**
-   * Uniquely identifies a pipeline run. Used by the @PipelineRun annotation in the pipeline repositories.
-   */
-  @BsonProperty("_id")
-  String id;
-
+public class Pipeline extends MongoEntity {
   /**
    * The version will increase on each pipeline update performed by the org.mongopipe.core.migration or by an store update operation.
    */
   Long version;
-  LocalDateTime insertedAt;
-  LocalDateTime modifiedAt;
+  LocalDateTime createdAt;
+  LocalDateTime updatedAt;
 
   /**
    * The raw/template BSON pipeline that is run by MongoDB. This contains pipeline variables in the form of ${variableName}. The values for
@@ -61,7 +56,7 @@ public class Pipeline extends PipelineBase {
    * Used mainly because it is simpler to edit directly in the DB and many users will have easier direct access to DB than API.
    * It is automatically generated from the bson list on each create/update via the API.
    */
-  String pipelineAsString;
+  String pipelineAsString = "[]";
 
   /**
    * Target collection on which to run.
@@ -70,19 +65,10 @@ public class Pipeline extends PipelineBase {
   String description;
 
   /**
-   * Optionally fully qualified class name. This is not needed for pipeline repositories but only when running generically with
-   * {@link PipelineRunner}.
-   * Used to automatically map result to the specified type.
-   * By default it is extracted from the @PipelineRun annotated method return type.
-   * Can be also provided at runtime when running manually with PipelineRunner.
-   */
-  String resultClass;
-
-  /**
    * Optionally the MongoDB command type and params that will use the pipeline. Defaulted to run 'db.collection.aggregate()'.
    * NOTE: These are NOT the same as the actual pipeline inline variables provided by the user on pipeline execution.
    */
-  CommandAndParams commandAndParams;
+  CommandOptions commandOptions;
 
   /**
    * Optionally extra JSON serializable information (e.g. array or object) that is <b>provided by user</b> and stored along with the
@@ -97,17 +83,20 @@ public class Pipeline extends PipelineBase {
   private Pipeline(Builder builder) {
     id = builder.id;
     version = builder.version;
-    insertedAt = builder.insertedAt;
-    modifiedAt = builder.modifiedAt;
+    createdAt = builder.insertedAt;
+    updatedAt = builder.modifiedAt;
+    if (builder.pipelineAsString != null) {
+      pipeline = toBsonList(builder.pipelineAsString);
+    }
     if (builder.pipeline != null) {
       pipeline = builder.pipeline.stream()
           .map(stage -> stage.toBsonDocument())
           .collect(Collectors.toList());
     }
-    pipelineAsString = builder.pipelineAsString;
+    pipelineAsString = builder.pipelineAsString != null ? builder.pipelineAsString : pipelineAsString;
     collection = builder.collection;
     description = builder.description;
-    resultClass = builder.resultClass;
+    commandOptions = builder.commandOptions;
     extra = builder.extra;
   }
 
@@ -117,7 +106,7 @@ public class Pipeline extends PipelineBase {
 
   public static final class Builder {
     private String id;
-    private Long version;
+    private Long version = 1L;
     private LocalDateTime insertedAt;
     private LocalDateTime modifiedAt;
     private String pipelineAsString;
@@ -126,6 +115,7 @@ public class Pipeline extends PipelineBase {
     private String description;
     private String resultClass;
     private Serializable extra;
+    private CommandOptions commandOptions;
 
     private Builder() {
     }
@@ -178,8 +168,18 @@ public class Pipeline extends PipelineBase {
       return this;
     }
 
+    public Builder resultClass(Class val) {
+      resultClass = val.getCanonicalName();
+      return this;
+    }
+
     public Builder extra(Serializable val) {
       extra = val;
+      return this;
+    }
+
+    public Builder commandOptions(CommandOptions val) {
+      commandOptions = val;
       return this;
     }
 
@@ -204,20 +204,20 @@ public class Pipeline extends PipelineBase {
     this.version = version;
   }
 
-  public LocalDateTime getInsertedAt() {
-    return insertedAt;
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
   }
 
-  public void setInsertedAt(LocalDateTime insertedAt) {
-    this.insertedAt = insertedAt;
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
   }
 
-  public LocalDateTime getModifiedAt() {
-    return modifiedAt;
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
   }
 
-  public void setModifiedAt(LocalDateTime modifiedAt) {
-    this.modifiedAt = modifiedAt;
+  public void setUpdatedAt(LocalDateTime updatedAt) {
+    this.updatedAt = updatedAt;
   }
 
   public List<BsonDocument> getPipeline() {
@@ -252,24 +252,16 @@ public class Pipeline extends PipelineBase {
     this.description = description;
   }
 
-  public String getResultClass() {
-    return resultClass;
+  public CommandOptions getCommandOptions() {
+    return commandOptions;
   }
 
-  public void setResultClass(String resultClass) {
-    this.resultClass = resultClass;
+  public <T extends CommandOptions> T getCommandOptionsAs(Class<T> clazz) {
+    return (T) commandOptions;
   }
 
-  public CommandAndParams getCommandAndParams() {
-    return commandAndParams;
-  }
-
-  public <T extends CommandAndParams> T getCommandAndParamsAs(Class<T> clazz) {
-    return (T)commandAndParams;
-  }
-
-  public void setCommandAndParams(CommandAndParams commandAndParams) {
-    this.commandAndParams = commandAndParams;
+  public void setCommandOptions(CommandOptions commandOptions) {
+    this.commandOptions = commandOptions;
   }
 
   public Serializable getExtra() {

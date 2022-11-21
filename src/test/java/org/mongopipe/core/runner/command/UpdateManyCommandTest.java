@@ -20,7 +20,7 @@ import org.bson.Document;
 import org.junit.Test;
 import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.model.Pipeline;
-import org.mongopipe.core.runner.command.param.UpdateManyParams;
+import org.mongopipe.core.runner.command.param.UpdateManyOptions;
 import org.mongopipe.core.util.AbstractMongoDBTest;
 
 import static org.mongopipe.core.util.BsonUtil.*;
@@ -34,11 +34,11 @@ public class UpdateManyCommandTest extends AbstractMongoDBTest {
     Pipeline pipeline = loadResourceIntoPojo("command/updateMany/updateManyMatchingPizza.bson", Pipeline.class);
     // Although the parameter is enclosed in quotes(i.e. a String), because it is a number and matches the full width of the string it will
     // be replaced with a number.
-    pipeline.setCommandAndParams(UpdateManyParams.builder()
+    pipeline.setCommandOptions(UpdateManyOptions.builder()
         .filter(filter)
         .build());
     db.getCollection(pipeline.getCollection()).insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
-    Pipelines.getStore().createPipeline(pipeline);
+    Pipelines.getStore().create(pipeline);
 
     // When
     long count = Pipelines.getRunner().run("updateManyMatchingPizza", filter, Long.class);

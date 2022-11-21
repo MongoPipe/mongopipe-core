@@ -20,7 +20,9 @@ import org.bson.*;
 import org.bson.codecs.*;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.json.RelaxedJsonReader;
+import org.bson.conversions.Bson;
+import org.bson.json.JsonReader;
+import org.bson.types.ObjectId;
 import org.mongopipe.core.exception.MongoPipeConfigException;
 
 import java.io.IOException;
@@ -52,7 +54,7 @@ public class BsonUtil {
     // https://stackoverflow.com/questions/34436952/json-parse-equivalent-in-mongo-driver-3-x-for-java
     final CodecRegistry codecRegistry = CodecRegistries.fromProviders(Collections.singletonList(new BsonValueCodecProvider()));
     // JsonReader reader = new JsonReader(bson);
-    RelaxedJsonReader reader = new RelaxedJsonReader(bson);
+    JsonReader reader = new JsonReader(bson);
     BsonArrayCodec arrayReader = new BsonArrayCodec(codecRegistry);
     BsonArray array = arrayReader.decode(reader, DecoderContext.builder().build());
     return array.stream()
@@ -61,11 +63,17 @@ public class BsonUtil {
   }
 
   public static Document toDocument(String bson) {
-    RelaxedJsonReader reader = new RelaxedJsonReader(bson);
+    // same Document.parse(bson);
+    JsonReader reader = new JsonReader(bson);
     Codec<Document> decoder = getCodecRegistry().get(Document.class);
     return decoder.decode(reader, DecoderContext.builder().build());
   }
 
+  public static Document toDocument(Bson bson) {
+    DocumentCodec codec = new DocumentCodec();
+    DecoderContext decoderContext = DecoderContext.builder().build();
+    return codec.decode(new BsonDocumentReader(bson.toBsonDocument()), decoderContext);
+  }
 
   public static <T> T toPojo(BsonDocument bsonDocument, Class<T> pojoClass) {
     BsonReader reader = new BsonDocumentReader(bsonDocument);
@@ -102,12 +110,22 @@ public class BsonUtil {
     }
   }
 
+  public static List<BsonDocument> loadResourceIntoBsonDocumentList(String resourcePath) {
+    try {
+      String bson = new String(Files.readAllBytes(Paths.get(BsonUtil.class.getClassLoader().getResource(resourcePath).toURI())));
+      return toBsonList(bson);
+    } catch (IOException | URISyntaxException e) {
+      throw new MongoPipeConfigException("Can not load classpath file " + resourcePath, e);
+    }
+  }
+
+
   public static <T> T toPojo(String bsonString, Class<T> pojoClass) {
     try {
       // see bson2pojo https://stackoverflow.com/questions/71777864/how-to-convert-a-pojo-to-an-bson-using-mongodb-java-driver
       CodecRegistry pojoCodecRegistry = getCodecRegistry();
       // Document.parse(bsonString).toBsonDocument();
-      BsonDocument bsonDocument = new BsonDocumentCodec().decode(new RelaxedJsonReader(bsonString), DecoderContext.builder().build());
+      BsonDocument bsonDocument = new BsonDocumentCodec().decode(new JsonReader(bsonString), DecoderContext.builder().build());
 
       BsonReader reader = new BsonDocumentReader(bsonDocument);
       Decoder<T> decoder = pojoCodecRegistry.get(pojoClass);
@@ -161,6 +179,8 @@ public class BsonUtil {
   public static BsonValue toBsonValue(Object value) {
     if (value == null) {
       return new BsonNull();
+    } else if (value instanceof ObjectId) {
+      return new BsonObjectId((ObjectId)value);
     } else if (value instanceof String) {
       return new BsonString(value.toString());
     } else if (value instanceof Integer) {

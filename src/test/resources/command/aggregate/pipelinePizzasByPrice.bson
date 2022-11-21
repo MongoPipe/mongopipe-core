@@ -4,9 +4,9 @@
   "pipeline": [
     {
       "$match": {
-        "price":  $pizzaPrice
+        "price":  "${pizzaPrice}"
       }
     }
   ],
-  "pipelineAsString": "[{\"$match\": {\"price\": $pizzaPrice}}]"
+  "pipelineAsString": "[{\"$match\": {\"price\": \"${pizzaPrice}\"}}]"
 }

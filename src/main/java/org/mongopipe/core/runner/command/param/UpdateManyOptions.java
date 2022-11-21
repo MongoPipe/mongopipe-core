@@ -21,17 +21,17 @@ import org.bson.codecs.pojo.annotations.BsonDiscriminator;
 
 import java.util.List;
 
-import static org.mongopipe.core.runner.command.param.CommandAndParams.TYPE_KEY;
+import static org.mongopipe.core.runner.command.param.CommandOptions.TYPE_KEY;
 
 /**
  * Stores parameters for <a href="https://www.mongodb.com/docs/manual/reference/method/db.collection.updateMany/">updateMany</a>.
  */
-@BsonDiscriminator(value = UpdateManyParams.TYPE, key = TYPE_KEY)
-public class UpdateManyParams extends BaseUpdateParams {
+@BsonDiscriminator(value = UpdateManyOptions.TYPE, key = TYPE_KEY)
+public class UpdateManyOptions extends BaseUpdateParams {
   public static final String TYPE = "updateMany";
   private final String type = TYPE;
 
-  private UpdateManyParams(Builder builder) {
+  private UpdateManyOptions(Builder builder) {
     setFilter(builder.filter);
     setUpsert(builder.upsert);
     setHint(builder.hint);
@@ -49,7 +49,7 @@ public class UpdateManyParams extends BaseUpdateParams {
     return type;
   }
 
-  public UpdateManyParams() {
+  public UpdateManyOptions() {
   }
 
   public static final class Builder {
@@ -93,8 +93,8 @@ public class UpdateManyParams extends BaseUpdateParams {
       return this;
     }
 
-    public UpdateManyParams build() {
-      return new UpdateManyParams(this);
+    public UpdateManyOptions build() {
+      return new UpdateManyOptions(this);
     }
   }
 }

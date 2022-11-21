@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package org.mongopipe.core.runner.command.param;
+package org.mongopipe.core.store;
 
-import org.bson.codecs.pojo.annotations.BsonDiscriminator;
+import org.mongopipe.core.annotation.Item;
+import org.mongopipe.core.annotation.Store;
+import org.mongopipe.core.migration.model.Status;
 
-/**
- * Common interface for all Mongo commands using a pipeline as one of their parameters.
- * Beside pipeline, the other parameters of the command are provided by a implementation of this class.
- */
-@BsonDiscriminator(value="genericCommand", key="type")
-public interface CommandAndParams {
-  String TYPE_KEY = "type";
+import java.util.Optional;
 
-  String getType();
+@Store(
+    items = {
+        @Item(type = Status.class, collection = "${mongoPipeConfig.statusCollection}")
+    }
+)
+public interface StatusStore {
+  Optional<Status> findById(Long id);
+  Status save(Status status);
 }

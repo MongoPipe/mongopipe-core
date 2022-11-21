@@ -16,11 +16,10 @@
 
 package org.mongopipe.core;
 
-import org.mongopipe.core.config.PipelineRunConfig;
-import org.mongopipe.core.config.PipelineRunContext;
 import org.mongopipe.core.exception.MongoPipeConfigException;
-import org.mongopipe.core.runner.PipelineRepositoriesLoader;
 import org.mongopipe.core.runner.PipelineRunner;
+import org.mongopipe.core.runner.context.RunContext;
+import org.mongopipe.core.runner.context.RunContextProvider;
 import org.mongopipe.core.store.PipelineStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,96 +27,85 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mongopipe.core.runner.context.RunContextProvider.DEFAULT_CONTEXT_ID;
+
 /**
- * Factories for most of the API.
+ * Factories for pipelines.
  */
 public class Pipelines {
-  public static final String DEFAULT_CONTEXT_ID = "<configurationId>"; // If you want to use concurrently multiple MongoDB databases.
   private static final Logger LOG = LoggerFactory.getLogger(Pipelines.class);
-  private static Map<String, PipelineRunContext> RUN_CONTEXT = new HashMap<>();
   private static Map<String, PipelineStore> STORE_MAP = new HashMap<>();
   private static Map<String, PipelineRunner> RUNNER_MAP = new HashMap<>();
 
-  public static void registerConfig(PipelineRunConfig pipelineRunConfig) {
-      if (pipelineRunConfig.getId() == null) {
-        pipelineRunConfig.setId(DEFAULT_CONTEXT_ID);
-      }
-      if (RUN_CONTEXT.containsKey(pipelineRunConfig.getId())) {
-        LOG.warn("Overwriting existing configuration with the same id.");
-      }
-      PipelineRunContext pipelineRunContext = new PipelineRunContext(pipelineRunConfig, null);
-      RUN_CONTEXT.put(pipelineRunConfig.getId(), pipelineRunContext);
-  }
-
   /**
-   * Obtains a pipeline interface implementation that you can use to call your pipelines.
-   * A. Without Spring (mongopipe-core):
-   * Pipelines.from(MyRestaurant.class)
-   *     .getPizzaOrdersBySize("MEDIUM");
-   *
-   * B. With Spring (mongopipe-spring):
-   * @Autowired
-   * MyRestaurant myRestaurant; // No need to call 'Pipelines.from'.
-   * ...
-   * myRestaurant.getPizzaOrdersBySize("MEDIUM", ...);
-   * ```
-   * @param pipelineRepositoryInterface is your interface class where you marked pipelines using the @Pipeline annotation.
-   * @param <T> The actual implementation proxy.
-   * @return
+   * Create pipeline database store.
+   * @param runConfigId in case you connect to multiple databases in the same process.
+   * @returns the pipeline store for CRUD operations on pipelines.
    */
-  public static <T> T from(Class<T> pipelineRepositoryInterface) {
-    return PipelineRepositoriesLoader.getRepository(pipelineRepositoryInterface);
-  }
-
-  /**
-   * Returns a pipeline store allowing CRUD operations on the pipeline.
-   * @param configurationId
-   * @return
-   */
-  public static PipelineStore getStore(String configurationId) {
-    PipelineRunContext pipelineRunContext = RUN_CONTEXT.get(configurationId);
-    if (pipelineRunContext == null) {
+  public static PipelineStore getStore(String runConfigId) {
+    RunContext runContext = RunContextProvider.getContext(runConfigId);
+    if (runContext == null) {
       throw new MongoPipeConfigException("Mongo-pipe configuration is missing. Use 'Pipelines.newConfig()' for this.");
     }
-    PipelineStore pipelineStore = new PipelineStore(pipelineRunContext);
-    STORE_MAP.put(configurationId, pipelineStore);
+    PipelineStore pipelineStore = new PipelineStore(runContext);
+    STORE_MAP.put(runConfigId, pipelineStore);
     return pipelineStore;
   }
 
   /**
-   * @returns the pipeline store that can be used to do CRUD operations on pipelines.
+   * Create pipeline database store.
+   * @returns the pipeline store for CRUD operations on pipelines.
    */
   public static PipelineStore getStore() {
     return getStore(DEFAULT_CONTEXT_ID);
   }
 
-  public static PipelineRunner getRunner(String configurationId) {
-    PipelineRunner pipelineRunner = RUNNER_MAP.get(configurationId);
+  /**
+   * Create pipeline runner.
+   * @param runConfigId in case you connect to multiple databases in the same process.
+   * @returns runner for manually running pipeline without the need of @PipelineRun annotated interface methods.
+   */
+  public static PipelineRunner getRunner(String runConfigId) {
+    PipelineRunner pipelineRunner = RUNNER_MAP.get(runConfigId);
     if (pipelineRunner != null) {
       return pipelineRunner;
     }
-    PipelineRunContext pipelineRunContext = RUN_CONTEXT.get(configurationId);
-    if (pipelineRunContext == null) {
+    RunContext runContext = RunContextProvider.getContext(runConfigId);
+    if (runContext == null) {
       throw new MongoPipeConfigException("Create and register configuration first");
     }
-    PipelineStore pipelineStore = STORE_MAP.get(configurationId);
+    PipelineStore pipelineStore = STORE_MAP.get(runConfigId);
     if (pipelineStore == null) {
-      pipelineStore = getStore(configurationId);
+      pipelineStore = getStore(runConfigId);
     }
-    pipelineRunner = new PipelineRunner(pipelineRunContext, pipelineStore);
-    RUNNER_MAP.put(configurationId, pipelineRunner);
+    pipelineRunner = new PipelineRunner(runContext, pipelineStore);
+    RUNNER_MAP.put(runConfigId, pipelineRunner);
     return pipelineRunner;
   }
 
+  /**
+   * Create pipeline runner.
+   * @returns runner for manually running pipeline without the need of @PipelineRun annotated interface methods.
+   */
   public static PipelineRunner getRunner() {
     return getRunner(DEFAULT_CONTEXT_ID);
   }
 
-  public static PipelineRunContext getRunContext(String configId) {
-    return RUN_CONTEXT.get(configId);
-  }
-  public static PipelineRunContext getRunContext() {
-    return RUN_CONTEXT.get(DEFAULT_CONTEXT_ID);
-  }
 
+
+//  /**
+//   * Load pipelines for the configured pipeline source (default is to load them from classpath path) and update the ones that have changed.
+//   * This should be called at program startup.
+//   * @param runConfigId
+//   */
+//  public static void startMigration(String runConfigId) {
+//    new MigratePipelines(RUN_CONTEXT.get(runConfigId)).migrate();
+//  }
+//
+//  /**
+//   * @see Stores#startMigration(String)
+//   */
+//  public static void startMigration() {
+//    startMigration(DEFAULT_CONTEXT_ID);
+//  }
 }

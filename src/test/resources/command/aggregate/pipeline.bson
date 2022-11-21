@@ -1,7 +1,7 @@
 {
   "_id": "matchingPizzasBySize",
   "collection": "pizzaCollection",
-  "commandAndParams": {
+  "commandOptions": {
     "type": "aggregate",
     "allowDiskUse": true,
     "batchSize": 10,
@@ -22,9 +22,9 @@
   "pipeline": [
     {
       "$match": {
-        "size": "$pizzaSize"
+        "size": "${pizzaSize}"
       }
     }
   ],
-  "pipelineAsString": "[{\"$match\": {\"size\": \"$pizzaSize\"}}]"
+  "pipelineAsString": "[{\"$match\": {\"size\": \"${pizzaSize}\"}}]"
 }
