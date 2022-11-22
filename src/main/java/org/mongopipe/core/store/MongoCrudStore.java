@@ -41,8 +41,8 @@ import java.util.regex.Matcher;
 
 import static com.mongodb.client.model.Filters.eq;
 import static org.mongopipe.core.runner.evaluation.BsonParameterEvaluator.PARAMETER_PATTERN;
-import static org.mongopipe.core.util.ReflectionsUtil.getFieldsAnnotatedWith;
-import static org.mongopipe.core.util.ReflectionsUtil.getMethodsAnnotatedWith;
+import static org.mongopipe.core.util.ReflectionUtil.getFieldsAnnotatedWith;
+import static org.mongopipe.core.util.ReflectionUtil.getMethodsAnnotatedWith;
 
 public class MongoCrudStore<ItemType, Id> implements CrudStore<ItemType, Id> {
 

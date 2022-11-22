@@ -32,7 +32,7 @@ import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mongopipe.core.util.ReflectionsUtil.getMethodGenericType;
+import static org.mongopipe.core.util.ReflectionUtil.getMethodGenericType;
 
 /**
  * Calls a database stored pipeline. Called on any methods that:

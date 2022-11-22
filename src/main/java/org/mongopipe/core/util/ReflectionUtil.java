@@ -25,9 +25,11 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class ReflectionsUtil {
+// Take a look also at https://github.com/spring-projects/spring-framework/blob/main/spring-core/src/main/java/org/springframework/util/ReflectionUtils.java
+public class ReflectionUtil {
 
   public static Class getMethodGenericType(Method method) {
     // https://stackoverflow.com/questions/3403909/get-generic-type-of-class-at-runtime
@@ -102,5 +104,16 @@ public class ReflectionsUtil {
   public static String getSimpleMethodId(Method method, Class actualClass) {
     //return actualClass.getSimpleName() + "." + method.getName(); // friendlier than hashCode().
     return method.toString();
+  }
+
+  private static boolean hasSameParams(Method method, Class<?>[] paramTypes) {
+    return (paramTypes.length == method.getParameterCount() &&
+        Arrays.equals(paramTypes, method.getParameterTypes()));
+  }
+  public static Method findMethod(Class<?> clazz, String name, Class<?>... paramTypes) {
+    Optional<Method> methodOptional = getClassMethodsIncludingInherited(clazz).stream()
+        .filter((method) -> method.getName().equalsIgnoreCase(name) && hasSameParams(method, paramTypes))
+        .findFirst();
+    return methodOptional.orElse(null);
   }
 }

@@ -22,6 +22,7 @@ import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.mongopipe.core.runner.context.RunContext;
 import org.mongopipe.core.runner.context.RunContextProvider;
 import org.mongopipe.core.runner.invocation.handler.CrudInvocationHandler;
+import org.mongopipe.core.runner.invocation.handler.DefaultMethodInvocationHandler;
 import org.mongopipe.core.runner.invocation.handler.PipelineInvocationHandler;
 import org.mongopipe.core.runner.invocation.handler.ProxyInvocationHandler;
 import org.mongopipe.core.store.CrudStore;
@@ -34,12 +35,13 @@ import java.lang.reflect.Parameter;
 import java.lang.reflect.Proxy;
 import java.util.*;
 
-import static org.mongopipe.core.util.ReflectionsUtil.getClassMethodsIncludingInherited;
-import static org.mongopipe.core.util.ReflectionsUtil.getSimpleMethodId;
+import static org.mongopipe.core.util.ReflectionUtil.getClassMethodsIncludingInherited;
+import static org.mongopipe.core.util.ReflectionUtil.getSimpleMethodId;
 
 public class StoresLoader {
   private static final Logger LOG = LoggerFactory.getLogger(StoresLoader.class);
   private final Map<Class, Object> stores = Collections.synchronizedMap(new HashMap());
+  DefaultMethodInvocationHandler defaultedMethodInvocationHandler = new DefaultMethodInvocationHandler();
 
   private <T> T loadStore(Class<T> storeClass) {
     if (!storeClass.isAnnotationPresent(Store.class)) {
@@ -75,6 +77,8 @@ public class StoresLoader {
     if (crudMethodOptional.isPresent()) {
       // This is a CRUD method matching the ones in CrudStore then delegate accordingly.
       return new CrudInvocationHandler(crudMethodOptional.get(), storeClass, runContext);
+    } else if (method.isDefault()) {
+      return defaultedMethodInvocationHandler;
     } else {
       // Fallback on pipeline, try to find a pipeline with the id "className#methodName" in case @PipelineRun is not provided.
       return new PipelineInvocationHandler(method, storeClass, runContext);

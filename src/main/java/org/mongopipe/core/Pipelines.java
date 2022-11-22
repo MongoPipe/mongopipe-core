@@ -17,6 +17,7 @@
 package org.mongopipe.core;
 
 import org.mongopipe.core.exception.MongoPipeConfigException;
+import org.mongopipe.core.migration.MigrationRunner;
 import org.mongopipe.core.runner.PipelineRunner;
 import org.mongopipe.core.runner.context.RunContext;
 import org.mongopipe.core.runner.context.RunContextProvider;
@@ -93,19 +94,19 @@ public class Pipelines {
 
 
 
-//  /**
-//   * Load pipelines for the configured pipeline source (default is to load them from classpath path) and update the ones that have changed.
-//   * This should be called at program startup.
-//   * @param runConfigId
-//   */
-//  public static void startMigration(String runConfigId) {
-//    new MigratePipelines(RUN_CONTEXT.get(runConfigId)).migrate();
-//  }
-//
-//  /**
-//   * @see Stores#startMigration(String)
-//   */
-//  public static void startMigration() {
-//    startMigration(DEFAULT_CONTEXT_ID);
-//  }
+  /**
+   * Load pipelines for the configured pipeline source (default is to load them from classpath path) and update the ones that have changed.
+   * This should be called at program startup.
+   * @param runConfigId
+   */
+  public static void startMigration(String runConfigId) {
+    new MigrationRunner(RunContextProvider.getContext(runConfigId), getStore(runConfigId)).run();
+  }
+
+  /**
+   * @see Pipelines#startMigration(String)
+   */
+  public static void startMigration() {
+    startMigration(DEFAULT_CONTEXT_ID);
+  }
 }

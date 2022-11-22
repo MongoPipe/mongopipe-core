@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static org.mongopipe.core.util.ReflectionsUtil.getMethodGenericType;
+import static org.mongopipe.core.util.ReflectionUtil.getMethodGenericType;
 
 /**
  * Used as an alternative to store classes (annotated with @Store) to generically run pipelines.

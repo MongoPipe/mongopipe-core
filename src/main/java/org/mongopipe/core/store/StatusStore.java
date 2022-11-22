@@ -30,4 +30,7 @@ import java.util.Optional;
 public interface StatusStore {
   Optional<Status> findById(Long id);
   Status save(Status status);
+  default Optional<Status> getStatus() {
+    return findById(1L);
+  }
 }

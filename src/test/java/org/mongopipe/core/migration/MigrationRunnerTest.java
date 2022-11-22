@@ -19,6 +19,7 @@ package org.mongopipe.core.migration;
 import lombok.Builder;
 import lombok.Data;
 import org.junit.Test;
+import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.Stores;
 import org.mongopipe.core.migration.model.MigrationStatus;
 import org.mongopipe.core.migration.model.PipelineMigrationStatus;
@@ -163,7 +164,7 @@ public class MigrationRunnerTest extends AbstractMongoDBTest {
 
 
     // When
-    new MigrationRunner().run();
+    Pipelines.startMigration();
 
     // Then
     assertEquals(Long.valueOf(3L), pipelineStore.count());

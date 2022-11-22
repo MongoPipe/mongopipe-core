@@ -62,8 +62,7 @@ public class MigrationRunner {
     if (source == null) {
       throw new MongoPipeConfigException("Missing pipeline migration source");
     }
-    // TODO: Consider allowing interface default methods in store interface, dig here https://stackoverflow.com/questions/37812393/how-to-explicitly-invoke-default-method-from-a-dynamic-proxy
-    Optional<Status> statusOptional = statusStore.findById(1L);
+    Optional<Status> statusOptional = statusStore.getStatus();
 
     if (!statusOptional.isPresent()) {
       // First time migration runs.

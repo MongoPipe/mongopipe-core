@@ -16,7 +16,6 @@
 
 package org.mongopipe.core.runner.invocation.handler;
 
-import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import static org.mongopipe.core.util.ReflectionsUtil.getSimpleMethodId;
+import static org.mongopipe.core.util.ReflectionUtil.getSimpleMethodId;
 
 public class ProxyInvocationHandler implements InvocationHandler {
   private static final Logger LOG = LoggerFactory.getLogger(PipelineInvocationHandler.class);
@@ -47,9 +46,6 @@ public class ProxyInvocationHandler implements InvocationHandler {
         } else {
           return null;
         }
-      } else if (method.isDefault()) {
-        // https://stackoverflow.com/questions/26206614/java8-dynamic-proxy-and-default-methods http://netomi.github.io/2020/04/17/default-methods.html
-        throw new MongoPipeConfigException("Store default methods are not supported currently. Found: " + method.toString());
       } else {
         String methodId = getSimpleMethodId(method, storeClass);
         return methodInvocationHandlers.get(methodId).invoke(proxy, method, args);
