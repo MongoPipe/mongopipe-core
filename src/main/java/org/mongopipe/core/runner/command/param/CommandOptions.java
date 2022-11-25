@@ -19,12 +19,27 @@ package org.mongopipe.core.runner.command.param;
 import org.bson.codecs.pojo.annotations.BsonDiscriminator;
 
 /**
- * Common interface for all Mongo commands using a pipeline as one of their parameters.
+ * Common for all Mongo commands using a pipeline as one of their parameters.
+ * Check all classes implementing this interface for a set of supported commands.
  * Beside pipeline, the other parameters of the command are provided by a implementation of this class.
  */
 @BsonDiscriminator(value="genericCommand", key="type")
-public interface CommandAndParams {
-  String TYPE_KEY = "type";
+public abstract class CommandOptions {
+  public static final String TYPE_KEY = "type";
 
-  String getType();
+  public abstract String getType();
+
+  public static AggregateParams.Builder aggregate() {
+    return AggregateParams.builder();
+  }
+  public static FindOneAndUpdateOptions.Builder findOneAndUpdate() {
+    return FindOneAndUpdateOptions.builder();
+  }
+  public static UpdateOneOptions.Builder updateOne() {
+    return UpdateOneOptions.builder();
+  }
+  public static UpdateManyOptions.Builder updateMany() {
+    return UpdateManyOptions.builder();
+  }
+
 }

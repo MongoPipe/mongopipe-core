@@ -16,12 +16,12 @@
 
 package org.mongopipe.core.runner.command;
 
-import org.mongopipe.core.config.PipelineRunContext;
+import org.mongopipe.core.runner.context.RunContext;
 import org.mongopipe.core.model.Pipeline;
 
 import java.util.Map;
 
 @FunctionalInterface
 public interface CommandSupplier {
-  MongoCommand build(Pipeline pipeline, PipelineRunContext pipelineRunContext, Map<String, ?> parameters, Class returnPojoClass);
+  MongoCommand build(Pipeline pipeline, RunContext runContext, Map<String, ?> parameters, Class returnPojoClass);
 }

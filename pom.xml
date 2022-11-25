@@ -45,7 +45,7 @@
         <java.target.version>1.8</java.target.version>
         <maven.compiler.source>${java.target.version}</maven.compiler.source>
         <maven.compiler.target>${java.target.version}</maven.compiler.target>
-        <mongodb.driver.version>4.7.2</mongodb.driver.version> <!-- Note: Update also RelaxedJsonReader.java when modifying version.-->
+        <mongodb.driver.version>4.7.2</mongodb.driver.version>
     </properties>
 
     <distributionManagement>
@@ -75,15 +75,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.7</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <!-- Use older version, to avoid potential conflicts if using a newer API. Can be excluded by client. -->
-            <!--Tested also with 0.10.2-->
-            <version>0.9.12</version>
+            <version>1.7.7</version> <!-- 2.0.3 has lambda support but client may use older version -->
         </dependency>
 
         <dependency>

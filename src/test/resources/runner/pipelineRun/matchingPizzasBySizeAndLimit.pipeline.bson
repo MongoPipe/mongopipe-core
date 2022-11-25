@@ -1,0 +1,8 @@
+  [
+    {
+       $match: { size: "${pizzaSize}" }
+    },
+    {
+        $limit: 1
+    }
+ ]

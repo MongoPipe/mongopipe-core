@@ -4,7 +4,7 @@
  "pipeline":
   [
       {
-        $addFields: { "isVegan": true }
+        "$addFields": { "isVegan": true }
       }
  ]
 }

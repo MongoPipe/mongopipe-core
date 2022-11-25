@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.mongopipe.core.runner;
+package org.mongopipe.core.model;
 
-import org.bson.codecs.pojo.annotations.BsonProperty;
+import org.bson.codecs.pojo.annotations.BsonId;
 
 import java.util.Date;
 
 // TODO: test also with inner class
 public class Pizza {
-  @BsonProperty("_id")
+  @BsonId
   Long id;
 
   String name;

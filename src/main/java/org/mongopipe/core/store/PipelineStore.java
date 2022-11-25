@@ -16,15 +16,21 @@
 
 package org.mongopipe.core.store;
 
-import org.mongopipe.core.config.PipelineRunContext;
+import org.mongopipe.core.Stores;
+import org.mongopipe.core.config.MongoPipeConfig;
+import org.mongopipe.core.exception.MongoPipeConfigException;
+import org.mongopipe.core.exception.PipelineNotFoundException;
 import org.mongopipe.core.fetcher.FetchCachedPipeline;
 import org.mongopipe.core.fetcher.FetchPipeline;
 import org.mongopipe.core.fetcher.FetchPipelineStore;
 import org.mongopipe.core.model.Pipeline;
-import org.mongopipe.core.notifier.ChangeNotifier;
+import org.mongopipe.core.notifier.GenericChangeNotifier;
+import org.mongopipe.core.runner.context.RunContext;
 import org.mongopipe.core.util.BsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.LocalDateTime;
 
 import static org.mongopipe.core.util.BsonUtil.toBsonList;
 
@@ -38,50 +44,106 @@ import static org.mongopipe.core.util.BsonUtil.toBsonList;
 public class PipelineStore {
   private static final Logger LOG = LoggerFactory.getLogger(PipelineStore.class);
 
-  private PipelineRunContext pipelineRunContext;
-  private final FetchPipeline<Pipeline> fetchPipeline;
-  private ChangeNotifier changeNotifier = new ChangeNotifier();
+  private MongoPipeConfig mongoPipeConfig;
+  private final FetchPipeline fetchPipeline;
+  private GenericChangeNotifier changeNotifier = new GenericChangeNotifier();
 
-  public PipelineStore(PipelineRunContext pipelineRunContext) {
-    this.pipelineRunContext = pipelineRunContext;
+  private final PipelineCrudStore crudStore;
+  private final PipelineHistoryStore historyStore;
+
+  public PipelineStore(RunContext runContext) {
+    mongoPipeConfig = runContext.getMongoPipeConfig();
+    crudStore = Stores.get(PipelineCrudStore.class);
+    historyStore = Stores.get(PipelineHistoryStore.class);
 
     //check to update or not cache
-    FetchPipelineStore<Pipeline> cachePipelineStore = new FetchPipelineStore<>(pipelineRunContext, Pipeline.class);
-    this.fetchPipeline = pipelineRunContext.getPipelineRunConfig().isStoreCacheEnabled()
-        ? new FetchCachedPipeline<>(cachePipelineStore) : cachePipelineStore;
+    FetchPipelineStore cachePipelineStore = new FetchPipelineStore(crudStore);
+    this.fetchPipeline = runContext.getMongoPipeConfig().isStoreCacheEnabled()
+        ? new FetchCachedPipeline(cachePipelineStore) : cachePipelineStore;
+
     changeNotifier.addListener((event) -> fetchPipeline.update());
   }
 
   public Pipeline getPipeline(String pipelineId) {
-    // TODO: versioning, cache, exception if not found, etc
-
-    //TODO IOPE: add change listener/notifier
     return fetchPipeline.getById(pipelineId);
   }
 
-  public void createPipeline(Pipeline pipeline) {
-    enhance(pipeline);
-    // TODO: versioning, cache, exception if not found, etc
-    pipelineRunContext.getMongoDatabase().getCollection(pipelineRunContext.getPipelineRunConfig().getStoreCollection(), Pipeline.class)
-        .insertOne(pipeline);
+  public Pipeline create(Pipeline pipeline) {
+    validateAndEnhance(pipeline);
+    pipeline.setVersion(1L);
+    pipeline.setCreatedAt(LocalDateTime.now());
+    pipeline.setUpdatedAt(pipeline.getCreatedAt());
+    Pipeline createdPipeline = crudStore.save(pipeline);
     changeNotifier.fire();
 
     LOG.info("Created pipeline: {}", pipeline.getId());
+    return createdPipeline;
   }
 
-  public void update(Pipeline pipeline) {
-    enhance(pipeline);
-    // TODO: On each update increment Pipeline#version.
+  public Pipeline update(Pipeline pipeline) {
+    validateAndEnhance(pipeline);
+
+    String pipelineId = pipeline.getId();
+    LocalDateTime now = LocalDateTime.now();
+    if (pipelineId == null) {
+      throw new MongoPipeConfigException("Pipeline id/name needs to be provided");
+    }
+    Pipeline old = getPipeline(pipelineId);
+    if (old != null) {
+      backup(old); // Save old first
+      pipeline.setCreatedAt(old.getCreatedAt());
+      pipeline.setVersion(old.getVersion() + 1);
+    } else {
+      // Allow upsert.
+      pipeline.setCreatedAt(now);
+      pipeline.setVersion(1L);
+    }
+    pipeline.setUpdatedAt(LocalDateTime.now());
+
+    Pipeline updatedPipeline = crudStore.save(pipeline);
+
     changeNotifier.fire();
-
     LOG.info("Updated pipeline: {}", pipeline.getId());
+    return updatedPipeline;
   }
 
-  private void enhance(Pipeline pipeline) {
+
+  public void delete(Pipeline pipeline) {
+    deleteById(pipeline.getId());
+  }
+
+  public void deleteById(String id) {
+    Pipeline pipeline = getPipeline(id);
+    if (pipeline == null) {
+      throw new PipelineNotFoundException(id);
+    }
+    backup(pipeline);
+    crudStore.deleteById(id);
+    changeNotifier.fire();
+    LOG.info("Deleted pipeline: {}", id);
+  }
+
+  private void backup(Pipeline pipeline) {
+    if (mongoPipeConfig.isStoreHistoryEnabled()) {
+      historyStore.save(pipeline);
+    }
+  }
+
+  private void validateAndEnhance(Pipeline pipeline) {
+    if (pipeline.getId() == null) {
+      throw new MongoPipeConfigException("Pipeline id/name needs to be provided");
+    }
+    if (pipeline.getCollection() == null) {
+      throw new MongoPipeConfigException("Collection name can not be null");
+    }
     if (pipeline.getPipeline() != null) {
       pipeline.setPipelineAsString(BsonUtil.toString(pipeline.getPipeline()));
     } else if (pipeline.getPipelineAsString() != null) {
       pipeline.setPipeline(toBsonList(pipeline.getPipelineAsString())); // Important: Store as native BsonDocument list in MongoDB and not as a String.
     }
+  }
+
+  public Long count() {
+    return crudStore.count();
   }
 }

@@ -19,9 +19,10 @@ package org.mongopipe.core.runner.command;
 import org.bson.Document;
 import org.junit.Test;
 import org.mongopipe.core.Pipelines;
+import org.mongopipe.core.Stores;
 import org.mongopipe.core.model.Pipeline;
+import org.mongopipe.core.runner.command.param.UpdateOneOptions;
 import org.mongopipe.core.store.MyRestaurant;
-import org.mongopipe.core.runner.command.param.UpdateOneParams;
 import org.mongopipe.core.util.AbstractMongoDBTest;
 import org.mongopipe.core.util.BsonUtil;
 import org.mongopipe.core.util.Maps;
@@ -33,16 +34,16 @@ public class UpdateOneCommandTest extends AbstractMongoDBTest {
   @Test
   public void testCommandRunningWithParams() {
     // Given
-    Document filter = toDocument("{'price': $pizzaPrice}");
+    Document filter = toDocument("{'price': \"${pizzaPrice}\"}");
     Pipeline pipeline = loadResourceIntoPojo("command/updateOne/updateOneMatchingPizza.bson", Pipeline.class);
-    pipeline.setCommandAndParams(UpdateOneParams.builder()
+    pipeline.setCommandOptions(UpdateOneOptions.builder()
         .filter(filter)
         .build());
     db.getCollection(pipeline.getCollection()).insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
-    Pipelines.getStore().createPipeline(pipeline);
+    Stores.getPipelineStore().create(pipeline);
 
     // When
-    long count = Pipelines.from(MyRestaurant.class).updateOnePizzaByPizzaPrice(12);
+    long count = Stores.get(MyRestaurant.class).updateOnePizzaByPizzaPrice(12);
 
     // Then
     assertEquals(1, count);
@@ -55,14 +56,14 @@ public class UpdateOneCommandTest extends AbstractMongoDBTest {
     Pipeline pipeline = loadResourceIntoPojo("command/updateOne/updateOneMatchingPizza.bson", Pipeline.class);
     // Although the parameter is enclosed in quotes(i.e. a String), because it is a number and matches the full width of the string it will
     // be replaced with a number.
-    pipeline.setCommandAndParams(UpdateOneParams.builder()
-        .filter(toDocument("{'price': \"$pizzaPrice\"}"))
+    pipeline.setCommandOptions(UpdateOneOptions.builder()
+        .filter(toDocument("{'price': \"${pizzaPrice}\"}"))
         .build());
     db.getCollection(pipeline.getCollection()).insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
-    Pipelines.getStore().createPipeline(pipeline);
+    Stores.getPipelineStore().create(pipeline);
 
     // When
-    long count = Pipelines.from(MyRestaurant.class).updateOnePizzaByPizzaPrice(12);
+    long count = Stores.get(MyRestaurant.class).updateOnePizzaByPizzaPrice(12);
 
     // Then
     assertEquals(1, count);
@@ -74,11 +75,11 @@ public class UpdateOneCommandTest extends AbstractMongoDBTest {
     Pipeline pipeline = loadResourceIntoPojo("command/updateOne/updateOneMatchingPizza.bson", Pipeline.class);
     // Although the parameter is enclosed in quotes(i.e. a String), because it is a number and matches the full width of the string it will
     // be replaced with a number.
-    pipeline.setCommandAndParams(UpdateOneParams.builder()
-        .filter(toDocument("{'price': \"$pizzaPrice\"}"))
+    pipeline.setCommandOptions(UpdateOneOptions.builder()
+        .filter(toDocument("{'price': \"${pizzaPrice}\"}"))
         .build());
     db.getCollection(pipeline.getCollection()).insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
-    Pipelines.getStore().createPipeline(pipeline);
+    Stores.getPipelineStore().create(pipeline);
 
     // When
     long count = Pipelines.getRunner().run("updateOneMatchingPizza", Maps.of("pizzaPrice", 12), Long.class);

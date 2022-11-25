@@ -22,7 +22,7 @@ import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
 import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
-import org.mongopipe.core.config.PipelineRunContext;
+import org.mongopipe.core.runner.context.RunContext;
 import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.runner.command.param.BaseFindUpdateParams;
@@ -39,34 +39,42 @@ import static org.mongopipe.core.util.BsonUtil.toBsonDocument;
  */
 public class FindOneAndUpdateCommand implements MongoCommand {
   private final Pipeline pipeline;
-  private final PipelineRunContext pipelineRunContext;
+  private final RunContext runContext;
   private final Map<String, ?> parameters;
   private final Class returnPojoClass;
   BsonParameterEvaluator bsonParameterEvaluator;
 
-  public FindOneAndUpdateCommand(Pipeline pipeline, PipelineRunContext pipelineRunContext, Map<String, ?> parameters, Class returnPojoClass) {
+  public FindOneAndUpdateCommand(Pipeline pipeline, RunContext runContext, Map<String, ?> parameters, Class returnPojoClass) {
     this.pipeline = pipeline;
-    this.pipelineRunContext = pipelineRunContext;
+    this.runContext = runContext;
     this.parameters = parameters;
     this.returnPojoClass = returnPojoClass;
     this.bsonParameterEvaluator = new BsonParameterEvaluator(parameters);
   }
 
-  public Object run(MongoCollection mongoCollection, BsonDocument filter, List<Bson> actualPipeline,
-                          FindOneAndUpdateOptions updateOptions) {
-    return mongoCollection.findOneAndUpdate(filter, actualPipeline, updateOptions);
+  public Object run(MongoCollection mongoCollection, Bson filter, List<Bson> pipeline, FindOneAndUpdateOptions updateOptions) {
+    return mongoCollection.findOneAndUpdate(filter, pipeline, updateOptions);
   }
+  public Object run(MongoCollection mongoCollection, Bson filter, Bson updateDocument, FindOneAndUpdateOptions updateOptions) {
+    return mongoCollection.findOneAndUpdate(filter, updateDocument, updateOptions);
+  }
+
 
   @Override
   public Object run() {
-    MongoCollection mongoCollection = pipelineRunContext.getMongoDatabase().getCollection(pipeline.getCollection());
+    MongoCollection mongoCollection = runContext.getMongoDatabase().getCollection(pipeline.getCollection());
 
-    BaseFindUpdateParams baseFindUpdateParams = pipeline.getCommandAndParamsAs(BaseFindUpdateParams.class);
+    BaseFindUpdateParams baseFindUpdateParams = pipeline.getCommandOptionsAs(BaseFindUpdateParams.class);
     BsonDocument filter = buildFilter(baseFindUpdateParams);
-    List actualPipeline = bsonParameterEvaluator.evaluate(pipeline.getPipeline());
 
     FindOneAndUpdateOptions updateOptions = buildUpdateOptions(baseFindUpdateParams);
-    Object updateResult = run(mongoCollection, filter, actualPipeline, updateOptions);
+    Object updateResult;
+    if (baseFindUpdateParams.getUpdateDocument() != null) {
+      updateResult = run(mongoCollection, filter, baseFindUpdateParams.getUpdateDocument(), updateOptions);
+    } else {
+      List actualPipeline = bsonParameterEvaluator.evaluate(pipeline.getPipeline());
+      updateResult = run(mongoCollection, filter, actualPipeline, updateOptions);
+    }
 
     return updateResult;
   }

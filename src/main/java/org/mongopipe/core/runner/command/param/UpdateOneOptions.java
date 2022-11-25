@@ -21,17 +21,17 @@ import org.bson.codecs.pojo.annotations.BsonDiscriminator;
 
 import java.util.List;
 
-import static org.mongopipe.core.runner.command.param.CommandAndParams.TYPE_KEY;
+import static org.mongopipe.core.runner.command.param.CommandOptions.TYPE_KEY;
 
 /**
  * Stores parameters for <a href="https://www.mongodb.com/docs/manual/reference/method/db.collection.updateOne/">updateOne</a>.
  */
-@BsonDiscriminator(value = UpdateOneParams.TYPE, key = TYPE_KEY)
-public class UpdateOneParams extends BaseUpdateParams {
+@BsonDiscriminator(value = UpdateOneOptions.TYPE, key = TYPE_KEY)
+public class UpdateOneOptions extends BaseUpdateParams {
   public static final String TYPE = "updateOne";
   private final String type = TYPE;
 
-  public UpdateOneParams() {
+  public UpdateOneOptions() {
   }
 
   @Override
@@ -39,7 +39,7 @@ public class UpdateOneParams extends BaseUpdateParams {
     return type;
   }
 
-  private UpdateOneParams(Builder builder) {
+  private UpdateOneOptions(Builder builder) {
     setFilter(builder.filter);
     setUpsert(builder.upsert);
     setHint(builder.hint);
@@ -114,8 +114,8 @@ public class UpdateOneParams extends BaseUpdateParams {
       return this;
     }
 
-    public UpdateOneParams build() {
-      return new UpdateOneParams(this);
+    public UpdateOneOptions build() {
+      return new UpdateOneOptions(this);
     }
   }
 }

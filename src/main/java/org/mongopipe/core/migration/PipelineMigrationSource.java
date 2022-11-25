@@ -16,10 +16,8 @@
 
 package org.mongopipe.core.migration;
 
-import org.mongopipe.core.model.Pipeline;
-
 import java.util.stream.Stream;
 
 public interface PipelineMigrationSource {
-  Stream<Pipeline> getPipelines();
+  Stream<MigrablePipeline> getMigrablePipelines();
 }

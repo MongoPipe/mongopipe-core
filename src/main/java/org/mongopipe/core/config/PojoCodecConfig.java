@@ -21,7 +21,10 @@ import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.ClassModel;
 import org.bson.codecs.pojo.PojoCodecProvider;
-import org.mongopipe.core.runner.command.param.*;
+import org.mongopipe.core.runner.command.param.AggregateParams;
+import org.mongopipe.core.runner.command.param.FindOneAndUpdateOptions;
+import org.mongopipe.core.runner.command.param.UpdateManyOptions;
+import org.mongopipe.core.runner.command.param.UpdateOneOptions;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
@@ -44,12 +47,13 @@ public class PojoCodecConfig {
     //        conventions(Arrays.asList(Conventions.ANNOTATION_CONVENTION)).build();
     ClassModel<AggregateParams> aggregateParamsClassModel = ClassModel.builder(AggregateParams.class)
         .enableDiscriminator(true).build();
-    ClassModel<UpdateOneParams> updateOneParamsClassModel = ClassModel.builder(UpdateOneParams.class)
+    ClassModel<UpdateOneOptions> updateOneParamsClassModel = ClassModel.builder(UpdateOneOptions.class)
         .enableDiscriminator(true).build();
-    ClassModel<UpdateManyParams> updateManyParamsClassModel = ClassModel.builder(UpdateManyParams.class)
+    ClassModel<UpdateManyOptions> updateManyParamsClassModel = ClassModel.builder(UpdateManyOptions.class)
         .enableDiscriminator(true).build();
-    ClassModel<FindOneAndUpdateParams> findOneAndUpdateParamsClassModel = ClassModel.builder(FindOneAndUpdateParams.class)
+    ClassModel<FindOneAndUpdateOptions> findOneAndUpdateParamsClassModel = ClassModel.builder(FindOneAndUpdateOptions.class)
         .enableDiscriminator(true).build();
+
 
     codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
         CodecRegistries.fromProviders(PojoCodecProvider.builder()

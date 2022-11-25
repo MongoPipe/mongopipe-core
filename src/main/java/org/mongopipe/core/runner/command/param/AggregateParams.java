@@ -20,13 +20,13 @@ import com.mongodb.ExplainVerbosity;
 import org.bson.Document;
 import org.bson.codecs.pojo.annotations.BsonDiscriminator;
 
-import static org.mongopipe.core.runner.command.param.CommandAndParams.TYPE_KEY;
+import static org.mongopipe.core.runner.command.param.CommandOptions.TYPE_KEY;
 
 /**
  * Stores parameters for <a href="https://www.mongodb.com/docs/manual/reference/method/db.collection.aggregate/">aggregate</a>.
  */
 @BsonDiscriminator(value=AggregateParams.TYPE, key=TYPE_KEY)
-public class AggregateParams implements CommandAndParams {
+public class AggregateParams extends CommandOptions {
   public static final String TYPE = "aggregate";
   private final String type = TYPE;
   private Boolean allowDiskUse;

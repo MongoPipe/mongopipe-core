@@ -19,7 +19,7 @@ package org.mongopipe.core.runner.command;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Collation;
-import org.mongopipe.core.config.PipelineRunContext;
+import org.mongopipe.core.runner.context.RunContext;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.runner.command.param.AggregateParams;
 import org.mongopipe.core.runner.evaluation.BsonParameterEvaluator;
@@ -30,23 +30,23 @@ import java.util.concurrent.TimeUnit;
 
 public class AggregateCommand implements MongoCommand {
   private final Pipeline pipeline;
-  private final PipelineRunContext pipelineRunConfig;
+  private final RunContext runContext;
   private final Map<String, ?> parameters;
   private final Class returnPojoClass;
   private final BsonParameterEvaluator bsonParameterEvaluator;
 
-  public AggregateCommand(Pipeline pipeline, PipelineRunContext pipelineRunContext, Map<String, ?> parameters, Class returnPojoClass) {
+  public AggregateCommand(Pipeline pipeline, RunContext runContext, Map<String, ?> parameters, Class returnPojoClass) {
     this.pipeline = pipeline;
     this.parameters = parameters;
-    this.pipelineRunConfig = pipelineRunContext;
+    this.runContext = runContext;
     this.returnPojoClass = returnPojoClass;
     this.bsonParameterEvaluator = new BsonParameterEvaluator(parameters);
   }
 
   @Override
   public Object run() {
-    MongoCollection mongoCollection = pipelineRunConfig.getMongoDatabase().getCollection(pipeline.getCollection());
-    AggregateParams aggregateParams = pipeline.getCommandAndParamsAs(AggregateParams.class);
+    MongoCollection mongoCollection = runContext.getMongoDatabase().getCollection(pipeline.getCollection());
+    AggregateParams aggregateParams = pipeline.getCommandOptionsAs(AggregateParams.class);
 
     List actualPipeline = bsonParameterEvaluator.evaluate(pipeline.getPipeline());
     AggregateIterable aggregateIterable = mongoCollection.aggregate(actualPipeline, returnPojoClass);

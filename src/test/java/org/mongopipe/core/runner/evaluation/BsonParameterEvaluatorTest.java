@@ -52,21 +52,22 @@ public class BsonParameterEvaluatorTest {
 
   @Test
   public void testRegex() {
-    //    Pattern pattern = Pattern.compile("(?<=\\$\\{)[^\\}]+(?=\\})");
-    //    assertEquals(Arrays.asList("unu"), test("${unu}", pattern));
-    //    assertEquals(Arrays.asList("unu"), test("zero${unu}doi", pattern));
-    //    assertEquals(Arrays.asList("unu", "trei"), test("zero ${unu} doi ${trei} patru", pattern));
-    //
-    //    assertEquals(Arrays.asList("unu", "doi"), test("un\n\t ;-{}$ u${unu}do\ni${doi}trei", pattern));
-    //    assertEquals(Arrays.asList("float(pizzaPrice)"), test("[{\"$match\": {\"price\": \"${float(pizzaPrice)}\"}}]", pattern));
+    //    Pattern pattern = BsonParameterEvaluator.PARAMETER_PATTERN;
+    //    Pattern pattern = Pattern.compile("(?<=\\$)\\w+");
+    //    assertEquals(Arrays.asList("unu"), test("$unu", pattern));
+    //    assertEquals(Arrays.asList("unu", "trei"), test("zero $unu \ndoi $trei", pattern));
+
+    Pattern pattern = Pattern.compile("(?<=\\$\\{)[^\\}]+(?=\\})");
+    assertEquals(Arrays.asList("unu"), test("${unu}", pattern));
+    assertEquals(Arrays.asList("unu"), test("zero${unu}doi", pattern));
+    assertEquals(Arrays.asList("unu", "trei"), test("zero ${unu} doi ${trei} patru", pattern));
+
+    assertEquals(Arrays.asList("unu", "doi"), test("un\n\t ;-{}$ u${unu}do\ni${doi}trei", pattern));
+    assertEquals(Arrays.asList("float(pizzaPrice)"), test("[{\"$match\": {\"price\": \"${float(pizzaPrice)}\"}}]", pattern));
 
     //    assertEquals(Arrays.asList("float", "pizzaPrice"),
-    //        Arrays.asList("${float(pizzaPrice)}".split(BsonParameterEvaluator.INSIDE_PATTERN)).stream()
-    //        .filter((s) -> !s.trim().isEmpty())
-    //        .collect(Collectors.toList()));
-
-    Pattern pattern = BsonParameterEvaluator.PARAMETER_PATTERN;
-    assertEquals(Arrays.asList("unu"), test("$unu", pattern));
-    assertEquals(Arrays.asList("unu", "trei"), test("zero $unu \ndoi $trei", pattern));
+    //        Arrays.asList("${float(pizzaPrice)}" .split(BsonParameterEvaluator.INSIDE_PATTERN)).stream()
+    //            .filter((s) -> !s.trim().isEmpty())
+    //            .collect(Collectors.toList()));
   }
 }

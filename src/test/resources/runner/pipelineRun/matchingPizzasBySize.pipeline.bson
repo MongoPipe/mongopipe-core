@@ -5,7 +5,7 @@
  "pipeline":
   [
     {
-       $match: { size: "$pizzaSize" }
+       $match: { size: "${pizzaSize}" }
     }
  ]
 }
