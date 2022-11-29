@@ -16,7 +16,15 @@
 
 package org.mongopipe.core.migration;
 
+import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.mongopipe.core.model.Pipeline;
+import org.mongopipe.core.util.BsonUtil;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 
 public class ClasspathMigrablePipeline implements MigrablePipeline {
 
@@ -27,12 +35,17 @@ public class ClasspathMigrablePipeline implements MigrablePipeline {
   public ClasspathMigrablePipeline(String resourcePath) {
     this.resourcePath = resourcePath;
   }
+
   @Override
   public Long getLastModifiedTime() {
-    // TODO: Avoid reading the file unless needed.
-    // Path file = Paths.get("/home/mkyong/file.txt");   See BsonUtil code with reading classpath resources.
-    // Files.readAttributes(file, BasicFileAttributes.class).getLastModifiedTime();
-    return null;
+    try {
+      Path filePath = BsonUtil.getPathFromResource(this.resourcePath);
+      lastModifiedTime = Files.readAttributes(filePath, BasicFileAttributes.class).lastModifiedTime().toMillis();
+    } catch (URISyntaxException | IOException exception) {
+      throw new MongoPipeConfigException("Resource file path not valid or not exist: " + this.resourcePath, exception);
+    }
+
+    return lastModifiedTime;
   }
 
   @Override
@@ -40,6 +53,7 @@ public class ClasspathMigrablePipeline implements MigrablePipeline {
     // TODO: Lazily load using  BsonUtil.loadResourceIntoPojo(String resourcePath, Class<T> pojoClass)
     // This means that the MigrationRunner will not need
     // And consider setting the value of lastModifiedTime if we also read the file.
-    return null;
+    pipeline = BsonUtil.loadResourceIntoPojo(this.resourcePath, Pipeline.class);
+    return pipeline;
   }
 }
