@@ -28,11 +28,9 @@ import org.mongopipe.core.exception.MongoPipeConfigException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.mongopipe.core.config.PojoCodecConfig.getCodecRegistry;
@@ -100,7 +98,7 @@ public class BsonUtil {
    */
   public static List<Document> loadResourceIntoDocumentList(String resourcePath) {
     try {
-      String bson = new String(Files.readAllBytes(Paths.get(BsonUtil.class.getClassLoader().getResource(resourcePath).toURI())));
+      String bson = new String(Files.readAllBytes(getPathFromResource(resourcePath)));
       return toBsonList(bson).stream()
           .map(elem -> (BsonDocument) elem)
           .map(BsonUtil::toDocument)
@@ -112,7 +110,7 @@ public class BsonUtil {
 
   public static List<BsonDocument> loadResourceIntoBsonDocumentList(String resourcePath) {
     try {
-      String bson = new String(Files.readAllBytes(Paths.get(BsonUtil.class.getClassLoader().getResource(resourcePath).toURI())));
+      String bson = new String(Files.readAllBytes(getPathFromResource(resourcePath)));
       return toBsonList(bson);
     } catch (IOException | URISyntaxException e) {
       throw new MongoPipeConfigException("Can not load classpath file " + resourcePath, e);
@@ -142,7 +140,7 @@ public class BsonUtil {
    */
   public static <T> T loadResourceIntoPojo(String resourcePath, Class<T> pojoClass) {
     try {
-      String bsonString = new String(Files.readAllBytes(Paths.get(BsonUtil.class.getClassLoader().getResource(resourcePath).toURI())));
+      String bsonString = new String(Files.readAllBytes(getPathFromResource(resourcePath)));
       return toPojo(bsonString, pojoClass);
     } catch (URISyntaxException | IOException e) {
       throw new MongoPipeConfigException("Can not convert resource path to pojo:" + resourcePath, e);
@@ -200,6 +198,17 @@ public class BsonUtil {
     } else {
       return toBsonDocument(value);
     }
+  }
+
+  /**
+   * Get file Path based on resource path
+   * @param resourcePath
+   * @return
+   */
+  public static Path getPathFromResource(String resourcePath) throws URISyntaxException{
+
+    return Paths.get(Objects.requireNonNull(
+            BsonUtil.class.getClassLoader().getResource(resourcePath)).toURI());
   }
 
 }
