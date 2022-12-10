@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.mongopipe.core.migration;
+package org.mongopipe.core.migration.source;
 
-import org.mongopipe.core.migration.source.MigratablePipeline;
+import org.mongopipe.core.config.MigrationConfig;
 
-import java.util.stream.Stream;
+import java.net.URL;
+import java.util.List;
 
-public interface PipelineMigrationSource {
-  Stream<MigratablePipeline> getMigrablePipelines();
+public interface MigratablePipelineScanner {
+  List<MigratablePipeline> loadPipelinesFromLocation(URL url, MigrationConfig migrationConfig);
 }

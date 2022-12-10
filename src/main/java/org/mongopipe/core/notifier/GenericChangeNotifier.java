@@ -18,7 +18,7 @@ public class GenericChangeNotifier {
   }
 
   /**
-   * Trigger an generic event
+   * Trigger an generic event.
    */
   public void fire() {
     publisher.firePropertyChange("change", null, null);

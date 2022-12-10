@@ -23,7 +23,7 @@ import org.mongopipe.core.runner.context.RunContext;
 
 /**
  * Library main configuration.
- * NOTE: Create one config per Mongo database.
+ * NOTE: Multiple configurations can coexist with different "id" field allowing the execution of pipelines on multiple databases.
  */
 @Data
 @Builder
@@ -59,7 +59,8 @@ public class MongoPipeConfig {
   /**
    * If "true" when a pipeline is updated or deleted the old pipeline is moved into the pipeline_store_history collection.
    */
-  protected boolean storeHistoryEnabled;
+  @Builder.Default
+  protected boolean storeHistoryEnabled = true;
 
   @Builder.Default
   protected String storeHistoryCollection = "pipeline_store_history";
@@ -71,5 +72,8 @@ public class MongoPipeConfig {
    * By default is disabled meaning it will read from the database the pipeline before each execution.
    */
   protected boolean storeCacheEnabled;
+
+  @Builder.Default
+  protected MigrationConfig migrationConfig = MigrationConfig.builder().build();
 
 }

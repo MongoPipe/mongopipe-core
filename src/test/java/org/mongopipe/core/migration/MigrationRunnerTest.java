@@ -21,15 +21,21 @@ import lombok.Data;
 import org.junit.Test;
 import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.Stores;
+import org.mongopipe.core.config.MigrationConfig;
+import org.mongopipe.core.config.MongoPipeConfig;
 import org.mongopipe.core.migration.model.MigrationStatus;
 import org.mongopipe.core.migration.model.PipelineMigrationStatus;
 import org.mongopipe.core.migration.model.Status;
+import org.mongopipe.core.migration.source.MigratablePipeline;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.runner.context.RunContextProvider;
 import org.mongopipe.core.store.PipelineStore;
 import org.mongopipe.core.store.StatusStore;
 import org.mongopipe.core.util.AbstractMongoDBTest;
 
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,11 +50,11 @@ public class MigrationRunnerTest extends AbstractMongoDBTest {
 
   @Builder
   @Data
-  static class TestMigrablePipeline implements MigrablePipeline {
+  static class TestMigratablePipeline implements MigratablePipeline {
     private final Long lastModifiedTime;
     private final Pipeline pipeline;
 
-    public TestMigrablePipeline(Long lastModifiedTime, Pipeline pipeline) {
+    public TestMigratablePipeline(Long lastModifiedTime, Pipeline pipeline) {
       this.lastModifiedTime = lastModifiedTime;
       this.pipeline = pipeline;
     }
@@ -62,6 +68,11 @@ public class MigrationRunnerTest extends AbstractMongoDBTest {
     public Pipeline getPipeline() {
       return pipeline;
     }
+
+    @Override
+    public String getSourceName() {
+      return null;
+    }
   }
 
   @Test
@@ -69,9 +80,9 @@ public class MigrationRunnerTest extends AbstractMongoDBTest {
     // Given
     Pipeline pipeline = loadResourceIntoPojo("command/aggregate/pipeline.bson", Pipeline.class);
     Pipeline pipeline2 = loadResourceIntoPojo("command/aggregate/pipelinePizzasByPrice.bson", Pipeline.class);
-    Stream<MigrablePipeline> migrationUnitStream = Arrays.asList(new MigrablePipeline[] {
-        TestMigrablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline).build(),
-        TestMigrablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline2).build()
+    Stream<MigratablePipeline> migrationUnitStream = Arrays.asList(new MigratablePipeline[]{
+        TestMigratablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline).build(),
+        TestMigratablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline2).build()
     }).stream();
     RunContextProvider.getContext().setPipelineMigrationSource(() -> migrationUnitStream);
 
@@ -97,9 +108,9 @@ public class MigrationRunnerTest extends AbstractMongoDBTest {
     // Given
     Pipeline pipeline = loadResourceIntoPojo("command/aggregate/pipeline.bson", Pipeline.class);
     Pipeline pipeline2 = loadResourceIntoPojo("command/aggregate/pipelinePizzasByPrice.bson", Pipeline.class);
-    Stream<MigrablePipeline> migrationUnitStream = Arrays.asList(new MigrablePipeline[] {
-        TestMigrablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline).build(),
-        TestMigrablePipeline.builder().lastModifiedTime(2L).pipeline(pipeline2).build()
+    Stream<MigratablePipeline> migrationUnitStream = Arrays.asList(new MigratablePipeline[]{
+        TestMigratablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline).build(),
+        TestMigratablePipeline.builder().lastModifiedTime(2L).pipeline(pipeline2).build()
     }).stream();
     RunContextProvider.getContext().setPipelineMigrationSource(() -> migrationUnitStream);
 
@@ -125,10 +136,10 @@ public class MigrationRunnerTest extends AbstractMongoDBTest {
     // Incoming migration source.
     Pipeline pipeline2Updated = loadResourceIntoPojo("command/aggregate/pipelinePizzasByPrice.bson", Pipeline.class);
     pipeline2Updated.setDescription("pipeline2Updated");
-    Stream<MigrablePipeline> migrationUnitStream = Arrays.asList(new MigrablePipeline[] {
-        TestMigrablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline1).build(),
-        TestMigrablePipeline.builder().lastModifiedTime(2L).pipeline(pipeline2Updated).build(),
-        TestMigrablePipeline.builder().lastModifiedTime(3L).pipeline(pipeline3IsNew).build()
+    Stream<MigratablePipeline> migrationUnitStream = Arrays.asList(new MigratablePipeline[]{
+        TestMigratablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline1).build(),
+        TestMigratablePipeline.builder().lastModifiedTime(2L).pipeline(pipeline2Updated).build(),
+        TestMigratablePipeline.builder().lastModifiedTime(3L).pipeline(pipeline3IsNew).build()
     }).stream();
     RunContextProvider.getContext().setPipelineMigrationSource(() -> migrationUnitStream);
 
@@ -194,4 +205,45 @@ public class MigrationRunnerTest extends AbstractMongoDBTest {
     assertNotNull(pipelineMigrationStatuses.get(2).getUpdateTime());
 
   }
+
+  @Test
+  public void testMigrationFromFileSourceUsedWhenLaunchingProcessLocallyOrTests() {
+    // Given
+    Stores.registerConfig(MongoPipeConfig.builder()
+        .uri("mongodb://localhost:" + PORT)
+        .databaseName("test")
+        .storeHistoryEnabled(true)
+        .migrationConfig(MigrationConfig.builder().pipelinesPath("pipe   lines").build()) // Test spaces in name and URL.
+        .build());
+
+    // When
+    Pipelines.startMigration();
+
+    // Then
+    assertEquals(Long.valueOf(2), Stores.getPipelineStore().count());
+  }
+
+  @Test
+  public void testMigrationFromClasspathJar() throws Exception {
+    // Given
+    String pipelineFolderPathInJar = "pipe lines";
+    Stores.registerConfig(MongoPipeConfig.builder()
+        .uri("mongodb://localhost:" + PORT)
+        .databaseName("test")
+        .storeHistoryEnabled(true)
+        .migrationConfig(MigrationConfig.builder().pipelinesPath(pipelineFolderPathInJar).build()) // Test spaces in name and URL.
+        .build());
+
+    URL url = Thread.currentThread().getContextClassLoader().getResources("jar-with-pipelines.jar").nextElement();
+    Method method = URLClassLoader.class.getDeclaredMethod("addURL", new Class[]{java.net.URL.class});
+    method.setAccessible(true);
+    method.invoke(Thread.currentThread().getContextClassLoader(), new Object[]{url});
+
+    // When
+    Pipelines.startMigration();
+
+    // Then
+    assertEquals(Long.valueOf(2), Stores.getPipelineStore().count());
+  }
+
 }

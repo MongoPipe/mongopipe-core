@@ -17,7 +17,8 @@
 package org.mongopipe.core.exception;
 
 public class InvalidPipelineTemplateException extends RuntimeException {
-  public InvalidPipelineTemplateException(String message, Exception e)  {
-    super(message, e);
+
+  public InvalidPipelineTemplateException(String message, Exception exception)  {
+    super(message, exception);
   }
 }

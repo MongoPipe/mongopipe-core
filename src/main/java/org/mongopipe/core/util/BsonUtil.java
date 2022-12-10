@@ -16,8 +16,29 @@
 
 package org.mongopipe.core.util;
 
-import org.bson.*;
-import org.bson.codecs.*;
+import org.bson.BsonArray;
+import org.bson.BsonBoolean;
+import org.bson.BsonDocument;
+import org.bson.BsonDocumentReader;
+import org.bson.BsonDocumentWriter;
+import org.bson.BsonDouble;
+import org.bson.BsonInt32;
+import org.bson.BsonInt64;
+import org.bson.BsonNull;
+import org.bson.BsonObjectId;
+import org.bson.BsonReader;
+import org.bson.BsonString;
+import org.bson.BsonValue;
+import org.bson.BsonWriter;
+import org.bson.Document;
+import org.bson.codecs.BsonArrayCodec;
+import org.bson.codecs.BsonDocumentCodec;
+import org.bson.codecs.BsonValueCodecProvider;
+import org.bson.codecs.Codec;
+import org.bson.codecs.Decoder;
+import org.bson.codecs.DecoderContext;
+import org.bson.codecs.DocumentCodec;
+import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
@@ -26,11 +47,16 @@ import org.bson.types.ObjectId;
 import org.mongopipe.core.exception.MongoPipeConfigException;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.mongopipe.core.config.PojoCodecConfig.getCodecRegistry;
@@ -131,9 +157,27 @@ public class BsonUtil {
       return pojo;
 
     } catch (RuntimeException e) {
-      throw new MongoPipeConfigException("Can not convert bson string to pojo:" + bsonString);
+      throw new MongoPipeConfigException("Can not convert bson string to pojo:" + bsonString, e);
     }
   }
+
+  public static <T> T toPojo(Reader reader, Class<T> pojoClass) {
+    try {
+      // see bson2pojo https://stackoverflow.com/questions/71777864/how-to-convert-a-pojo-to-an-bson-using-mongodb-java-driver
+      CodecRegistry pojoCodecRegistry = getCodecRegistry();
+      // Document.parse(bsonString).toBsonDocument();
+      BsonDocument bsonDocument = new BsonDocumentCodec().decode(new JsonReader(reader), DecoderContext.builder().build());
+
+      BsonReader bsonReader = new BsonDocumentReader(bsonDocument);
+      Decoder<T> decoder = pojoCodecRegistry.get(pojoClass);
+      T pojo = decoder.decode(bsonReader, DecoderContext.builder().build());
+      return pojo;
+
+    } catch (RuntimeException e) {
+      throw new MongoPipeConfigException("Can not convert bson string to pojo:" + e.getMessage(), e);
+    }
+  }
+
 
   /**
    * Converts a String from a classpath resource to pojo class.
@@ -201,14 +245,10 @@ public class BsonUtil {
   }
 
   /**
-   * Get file Path based on resource path
-   * @param resourcePath
-   * @return
+   * @return file Path based on resource path
    */
   public static Path getPathFromResource(String resourcePath) throws URISyntaxException{
-
-    return Paths.get(Objects.requireNonNull(
-            BsonUtil.class.getClassLoader().getResource(resourcePath)).toURI());
+    return Paths.get(Objects.requireNonNull(BsonUtil.class.getClassLoader().getResource(resourcePath)).toURI());
   }
 
 }

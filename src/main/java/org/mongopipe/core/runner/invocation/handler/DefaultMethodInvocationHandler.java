@@ -16,9 +16,8 @@
 
 package org.mongopipe.core.runner.invocation.handler;
 
+import lombok.CustomLog;
 import org.mongopipe.core.util.ReflectionUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -39,9 +38,8 @@ import java.util.Optional;
  * @author Mark Paluch
  * @author Johannes Englmeier
  */
+@CustomLog
 public class DefaultMethodInvocationHandler implements InvocationHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultMethodInvocationHandler.class);
-
   private final MethodHandleLookup methodHandleLookup = MethodHandleLookup.getMethodHandleLookup();
 
   // https://stackoverflow.com/questions/37812393/how-to-explicitly-invoke-default-method-from-a-dynamic-proxy

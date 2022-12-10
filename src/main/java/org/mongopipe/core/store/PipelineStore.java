@@ -16,6 +16,7 @@
 
 package org.mongopipe.core.store;
 
+import lombok.CustomLog;
 import org.mongopipe.core.Stores;
 import org.mongopipe.core.config.MongoPipeConfig;
 import org.mongopipe.core.exception.MongoPipeConfigException;
@@ -27,8 +28,6 @@ import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.notifier.GenericChangeNotifier;
 import org.mongopipe.core.runner.context.RunContext;
 import org.mongopipe.core.util.BsonUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 
@@ -41,9 +40,8 @@ import static org.mongopipe.core.util.BsonUtil.toBsonList;
  * disable cache.
  *
  */
+@CustomLog
 public class PipelineStore {
-  private static final Logger LOG = LoggerFactory.getLogger(PipelineStore.class);
-
   private MongoPipeConfig mongoPipeConfig;
   private final FetchPipeline fetchPipeline;
   private GenericChangeNotifier changeNotifier = new GenericChangeNotifier();

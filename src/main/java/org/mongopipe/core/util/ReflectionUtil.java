@@ -31,6 +31,9 @@ import java.util.stream.Collectors;
 // Take a look also at https://github.com/spring-projects/spring-framework/blob/main/spring-core/src/main/java/org/springframework/util/ReflectionUtils.java
 public class ReflectionUtil {
 
+  /**
+   * @return the method generic type.
+   */
   public static Class getMethodGenericType(Method method) {
     // https://stackoverflow.com/questions/3403909/get-generic-type-of-class-at-runtime
     Class returnPojoClass = method.getReturnType();
@@ -44,6 +47,9 @@ public class ReflectionUtil {
     return returnPojoClass;
   }
 
+  /**
+   * @return the class generic type.
+   */
   public static Class getClassGenericType(Class clazz) {
     // https://stackoverflow.com/questions/3403909/get-generic-type-of-class-at-runtime
     Type[] actualTypeArguments = clazz.getTypeParameters();
@@ -66,7 +72,7 @@ public class ReflectionUtil {
     }
   }
 
-  public static List<Field> getClassFields(Class clazz) {
+  private static List<Field> getClassFields(Class clazz) {
     List<Field> fields = new ArrayList();
     getClassFields(clazz, fields);
     return fields;
@@ -83,33 +89,48 @@ public class ReflectionUtil {
     Arrays.stream(clazz.getInterfaces()).forEach((interfaceClass) -> getClassMethodsIncludingInherited(interfaceClass, accumulation));
   }
 
+  /**
+   * @return all the class methods including inherited.
+   */
   public static List<Method> getClassMethodsIncludingInherited(Class clazz) {
     List<Method> methods = new ArrayList();
     getClassMethodsIncludingInherited(clazz, methods);
     return methods;
   }
 
+  /**
+   * @return the fields annotated with an annotation.
+   */
   public static List<Field> getFieldsAnnotatedWith(Class clazz, Class annotationClass) {
     return (List<Field>)getClassFields(clazz).stream()
         .filter((field) -> field.getAnnotation(annotationClass) != null)
         .collect(Collectors.toList());
   }
 
+  /**
+   * @return the methods annotated with an annotation.
+   */
   public static List<Method> getMethodsAnnotatedWith(Class clazz, Class annotationClass) {
-    return (List<Method>) getClassMethodsIncludingInherited(clazz).stream()
+    return (List<Method>)getClassMethodsIncludingInherited(clazz).stream()
         .filter((method) -> method.getAnnotation(annotationClass) != null)
         .collect(Collectors.toList());
   }
 
-  public static String getSimpleMethodId(Method method, Class actualClass) {
+  /**
+   * @return a method id to be used as an unique key in maps.
+   */
+  public static String getSimpleMethodId(Method method) {
     //return actualClass.getSimpleName() + "." + method.getName(); // friendlier than hashCode().
     return method.toString();
   }
 
   private static boolean hasSameParams(Method method, Class<?>[] paramTypes) {
-    return (paramTypes.length == method.getParameterCount() &&
-        Arrays.equals(paramTypes, method.getParameterTypes()));
+    return paramTypes.length == method.getParameterCount() && Arrays.equals(paramTypes, method.getParameterTypes());
   }
+
+  /**
+   * Searches for a method by name and parameter types.
+   */
   public static Method findMethod(Class<?> clazz, String name, Class<?>... paramTypes) {
     Optional<Method> methodOptional = getClassMethodsIncludingInherited(clazz).stream()
         .filter((method) -> method.getName().equalsIgnoreCase(name) && hasSameParams(method, paramTypes))

@@ -29,17 +29,15 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import junit.framework.TestCase;
+import lombok.CustomLog;
 import org.mongopipe.core.Stores;
 import org.mongopipe.core.config.MongoPipeConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * TODO: Consider replacing with junit jupiter @Extension as @Before annotated method will not work if test class is extending TestCase.
  */
+@CustomLog
 public abstract class AbstractMongoDBTest extends TestCase {
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractMongoDBTest.class);
-
   /**
    * please store Starter or RuntimeConfig in a static final field
    * if you want to use artifact store caching (or else disable caching)

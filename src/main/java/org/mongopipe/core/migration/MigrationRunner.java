@@ -16,18 +16,19 @@
 
 package org.mongopipe.core.migration;
 
+import lombok.CustomLog;
 import org.mongopipe.core.Stores;
-import org.mongopipe.core.exception.MongoPipeConfigException;
+import org.mongopipe.core.config.MigrationConfig;
+import org.mongopipe.core.exception.MongoPipeMigrationException;
 import org.mongopipe.core.migration.model.MigrationStatus;
 import org.mongopipe.core.migration.model.PipelineMigrationStatus;
 import org.mongopipe.core.migration.model.Status;
+import org.mongopipe.core.migration.source.MigratablePipeline;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.runner.context.RunContext;
 import org.mongopipe.core.runner.context.RunContextProvider;
 import org.mongopipe.core.store.PipelineStore;
 import org.mongopipe.core.store.StatusStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,11 +39,11 @@ import static org.mongopipe.core.util.MigrationUtil.getChecksum;
 import static org.mongopipe.core.util.MigrationUtil.getHash;
 
 /**
- *
- *
+ * Runs the pipeline migration from a given source usually a resources folder.
+ * This will allow the automated creation/update of pipelines on process startup.
  */
+@CustomLog
 public class MigrationRunner {
-  private static final Logger LOG = LoggerFactory.getLogger(MigrationRunner.class);
   private final RunContext runContext;
   private final PipelineStore pipelineStore;
   private StatusStore statusStore;
@@ -58,9 +59,15 @@ public class MigrationRunner {
   }
 
   public void run() {
+    MigrationConfig migrationConfig = runContext.getMongoPipeConfig().getMigrationConfig();
+    if (!migrationConfig.isEnabled()) {
+      LOG.warn("Skip pipeline migration.");
+      return;
+    }
     PipelineMigrationSource source = runContext.getPipelineMigrationSource();
+
     if (source == null) {
-      throw new MongoPipeConfigException("Missing pipeline migration source");
+      throw new MongoPipeMigrationException("Missing pipeline migration source");
     }
     Optional<Status> statusOptional = statusStore.getStatus();
 
@@ -71,15 +78,15 @@ public class MigrationRunner {
       // 1. First compute fast checksum of the source pipelines and compare with existing.
       //   If equal then no change needed. This means that existing db pipeline changes (done via API or directly), will remain untouched.
       // 2. If not equal then iterate on all units, compute checksum and compare with db one and if it differs then create/update.
-      List<MigrablePipeline> migrablePipelines = source.getMigrablePipelines().collect(Collectors.toList());
-      String sourceFastChecksum = getFastChecksum(migrablePipelines);
+      List<MigratablePipeline> migratablePipelines = source.getMigrablePipelines().collect(Collectors.toList());
+      String sourceFastChecksum = getFastChecksum(migratablePipelines);
       Status status = statusOptional.get();
 
       String dbFastChecksum = status.getMigrationStatus().getFastChecksum();
       if(sourceFastChecksum.equals(dbFastChecksum)) {
         LOG.info("Pipeline migration not needed.");
       } else {
-        List<PipelineMigrationStatus> pipelineMigrationStatuses = migrablePipelines.stream().map(migrablePipeline -> {
+        List<PipelineMigrationStatus> pipelineMigrationStatuses = migratablePipelines.stream().map(migrablePipeline -> {
 
           Optional<PipelineMigrationStatus> dbStatus = status.getMigrationStatus().getPipelineMigrationStatuses().stream()
               .filter(migrationStatus -> migrationStatus.getPipelineId().equals(migrablePipeline.getPipeline().getId()))
@@ -87,7 +94,7 @@ public class MigrationRunner {
 
           PipelineMigrationStatus pipelineMigrationStatus = null;
           if (!dbStatus.isPresent()) {
-            pipelineMigrationStatus = savePipelineAndReturnMigrationStatus(migrablePipeline.getPipeline());
+            pipelineMigrationStatus = savePipelineAndReturnMigrationStatus(migrablePipeline);
           } else {
             String migrableChecksum = getChecksum(migrablePipeline.getPipeline());
             String dbChecksum = dbStatus.get().getChecksum();
@@ -95,32 +102,32 @@ public class MigrationRunner {
               LOG.debug("No migration needed for pipeline: " + migrablePipeline.getPipeline().getId());
               pipelineMigrationStatus = dbStatus.get();  // No change
             } else {
-              pipelineMigrationStatus = savePipelineAndReturnMigrationStatus(migrablePipeline.getPipeline());
+              pipelineMigrationStatus = savePipelineAndReturnMigrationStatus(migrablePipeline);
             }
           }
           return pipelineMigrationStatus;
         }).collect(Collectors.toList());
 
-        saveNewStatus(migrablePipelines, pipelineMigrationStatuses);
+        saveNewStatus(migratablePipelines, pipelineMigrationStatuses);
       }
     }
 
     LOG.debug("Migration ended.");
   }
 
-  private String getFastChecksum(List<MigrablePipeline> migrablePipelines) {
-    return getHash(String.valueOf(migrablePipelines.stream()
+  private String getFastChecksum(List<MigratablePipeline> migratablePipelines) {
+    return getHash(String.valueOf(migratablePipelines.stream()
         .map(unit -> "." + unit.getLastModifiedTime())
         .reduce("", String::concat)));
   }
 
-  private void saveNewStatus(List<MigrablePipeline> migrablePipelines, List<PipelineMigrationStatus> pipelineMigrationStatuses) {
+  private void saveNewStatus(List<MigratablePipeline> migratablePipelines, List<PipelineMigrationStatus> pipelineMigrationStatuses) {
     LocalDateTime now = LocalDateTime.now();
     MigrationStatus migrationStatus = MigrationStatus.builder()
         .runAt(now)
         .build();
     migrationStatus.setPipelineMigrationStatuses(pipelineMigrationStatuses);
-    migrationStatus.setFastChecksum(getFastChecksum(migrablePipelines));
+    migrationStatus.setFastChecksum(getFastChecksum(migratablePipelines));
 
     // Main status.
     Status status = Status.builder()
@@ -132,15 +139,17 @@ public class MigrationRunner {
   }
 
   private void createAll(PipelineMigrationSource source) {
-    List<MigrablePipeline> migrablePipelines = source.getMigrablePipelines().collect(Collectors.toList());
-    List<PipelineMigrationStatus> pipelineMigrationStatuses = migrablePipelines.stream()
-        .map(unit -> savePipelineAndReturnMigrationStatus(unit.getPipeline()))
+    List<MigratablePipeline> migratablePipelines = source.getMigrablePipelines().collect(Collectors.toList());
+    List<PipelineMigrationStatus> pipelineMigrationStatuses = migratablePipelines.stream()
+        .map(unit -> savePipelineAndReturnMigrationStatus(unit))
         .collect(Collectors.toList());
 
-    saveNewStatus(migrablePipelines, pipelineMigrationStatuses);
+    saveNewStatus(migratablePipelines, pipelineMigrationStatuses);
   }
 
-  private PipelineMigrationStatus savePipelineAndReturnMigrationStatus(Pipeline pipeline) {
+  private PipelineMigrationStatus savePipelineAndReturnMigrationStatus(MigratablePipeline migratablePipeline) {
+    Pipeline pipeline = migratablePipeline.getPipeline();
+    LOG.info("Updating pipeline {} from source {}", pipeline.getId(), migratablePipeline.getSourceName());
     try {
       pipeline = pipelineStore.update(pipeline);
     } catch (Exception e) {
@@ -152,6 +161,5 @@ public class MigrationRunner {
         .updateTime(pipeline.getUpdatedAt())
         .build();
   }
-
 
 }
