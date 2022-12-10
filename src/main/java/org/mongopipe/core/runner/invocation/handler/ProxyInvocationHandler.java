@@ -16,8 +16,7 @@
 
 package org.mongopipe.core.runner.invocation.handler;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -26,8 +25,8 @@ import java.util.Map;
 
 import static org.mongopipe.core.util.ReflectionUtil.getSimpleMethodId;
 
+@CustomLog
 public class ProxyInvocationHandler implements InvocationHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(PipelineInvocationHandler.class);
   private final Class storeClass;
   private final Map<String, InvocationHandler> methodInvocationHandlers;
 
@@ -47,7 +46,7 @@ public class ProxyInvocationHandler implements InvocationHandler {
           return null;
         }
       } else {
-        String methodId = getSimpleMethodId(method, storeClass);
+        String methodId = getSimpleMethodId(method);
         return methodInvocationHandlers.get(methodId).invoke(proxy, method, args);
       }
     } catch (InvocationTargetException ex) {

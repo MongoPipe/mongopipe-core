@@ -24,13 +24,16 @@ import java.util.Map;
  */
 public class Maps {
 
+  /**
+   * Create a map with given keys and values.
+   */
   public static <K> Map<K, ?> of(K k1, Object v1, Object... others) {
     if (others.length % 2 != 0) {
       throw new RuntimeException("Need to specify an even number of elements in the order key,value,key,value, ...");
     }
     Map map = new HashMap();
     map.put(k1, v1);
-    for (int i = 0; i< others.length; i++) {
+    for (int i = 0; i < others.length; i++) {
       map.put(others[i], others[++i]);
     }
     return map;

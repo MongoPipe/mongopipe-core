@@ -16,6 +16,7 @@
 
 package org.mongopipe.core.runner.invocation;
 
+import lombok.CustomLog;
 import org.mongopipe.core.annotation.Param;
 import org.mongopipe.core.annotation.Store;
 import org.mongopipe.core.exception.MongoPipeConfigException;
@@ -26,20 +27,22 @@ import org.mongopipe.core.runner.invocation.handler.DefaultMethodInvocationHandl
 import org.mongopipe.core.runner.invocation.handler.PipelineInvocationHandler;
 import org.mongopipe.core.runner.invocation.handler.ProxyInvocationHandler;
 import org.mongopipe.core.store.CrudStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Proxy;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.mongopipe.core.util.ReflectionUtil.getClassMethodsIncludingInherited;
 import static org.mongopipe.core.util.ReflectionUtil.getSimpleMethodId;
 
+@CustomLog
 public class StoresLoader {
-  private static final Logger LOG = LoggerFactory.getLogger(StoresLoader.class);
   private final Map<Class, Object> stores = Collections.synchronizedMap(new HashMap());
   DefaultMethodInvocationHandler defaultedMethodInvocationHandler = new DefaultMethodInvocationHandler();
 
@@ -90,7 +93,7 @@ public class StoresLoader {
     Map<String, InvocationHandler> handlers = new HashMap<>();
     // Note that method may be from a super interface and not be declared in storeClass, so need to pass both parameters.
     getClassMethodsIncludingInherited(storeClass).stream()
-        .forEach(method -> handlers.put(getSimpleMethodId(method, storeClass), createMethodHandler(method, storeClass, runContext)));
+        .forEach(method -> handlers.put(getSimpleMethodId(method), createMethodHandler(method, storeClass, runContext)));
     return handlers;
   }
 
@@ -109,6 +112,9 @@ public class StoresLoader {
     });
   }
 
+  /**
+   * @returns a store instantiating the given storeClass interface.
+   */
   public <T> T getStore(Class<T> storeClass) {
     // Lazy load the store on first usage.
     // TODO: In the Spring integration library a Class.forName("...").newInstance() will allow calling an adapter from the library for

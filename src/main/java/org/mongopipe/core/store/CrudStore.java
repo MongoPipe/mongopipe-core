@@ -19,7 +19,11 @@ package org.mongopipe.core.store;
 import java.util.Optional;
 
 /**
- * NOTE: A generic @Store can keep objects of different types. But the methods listed here are the ones supported for every item type.
+ * Your @Store will automatically support a CRUD method if it matches the signature in the interface.
+ * A generic @Store can keep objects of different types. But the methods listed here are the ones supported for every item type.
+ *
+ *
+ *
  * @param <Item>
  * @param <Id>
  */

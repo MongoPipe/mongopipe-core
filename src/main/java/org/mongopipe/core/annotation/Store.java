@@ -19,7 +19,11 @@ package org.mongopipe.core.annotation;
 import org.bson.Document;
 import org.mongopipe.core.config.MongoPipeConfig;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 import static org.mongopipe.core.runner.context.RunContextProvider.DEFAULT_CONTEXT_ID;
 

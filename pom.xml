@@ -14,6 +14,7 @@
         <license>
             <name>The Apache Software License, Version 2.0</name>
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
         </license>
     </licenses>
 
@@ -28,7 +29,6 @@
         <developer>
             <name>Cristian Donoiu</name>
             <id>cristiandonoiu</id>
-            <email>doncristiano@yahoo.com</email>
             <organization>org.mongopipe</organization>
             <organizationUrl>https://github.com/MongoPipe/</organizationUrl>
         </developer>
@@ -46,6 +46,8 @@
         <maven.compiler.source>${java.target.version}</maven.compiler.source>
         <maven.compiler.target>${java.target.version}</maven.compiler.target>
         <mongodb.driver.version>4.7.2</mongodb.driver.version>
+        <version.lombok>1.18.20</version.lombok>
+        <version.lombok-maven-plugin>1.18.20.0</version.lombok-maven-plugin>
     </properties>
 
     <distributionManagement>
@@ -72,16 +74,18 @@
             <version>${mongodb.driver.version}</version>
         </dependency>
 
+        <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.7</version> <!-- 2.0.3 has lambda support but client may use older version -->
+            <optional>true</optional>   <!-- Use the user one if available. -->
         </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.12</version>
+            <version>${version.lombok}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -119,7 +123,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.13.3</version>
+            <version>2.13.4.1</version>
             <scope>test</scope>
         </dependency>
 
@@ -159,7 +163,8 @@
                         <configLocation>google_checks.xml</configLocation>
                         <failOnViolation>true</failOnViolation>
                         <violationSeverity>warning</violationSeverity>
-                        <violationIgnore>LineLength, MemberName, CommentsIndentation, CustomImportOrder</violationIgnore>
+                        <violationIgnore>LineLength, MemberName, CommentsIndentation, CustomImportOrder, AbbreviationAsWordInName,
+                            SummaryJavadoc </violationIgnore>
                     </configuration>
                     <executions>
                         <execution>
@@ -176,13 +181,51 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${version.lombok}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
             </plugin>
-            <!-- TODO: Enable once code is past beta -->
-            <!--            <plugin>-->
-            <!--                <groupId>org.apache.maven.plugins</groupId>-->
-            <!--                <artifactId>maven-checkstyle-plugin</artifactId>-->
-            <!--            </plugin>-->
+            <!--<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+            </plugin>-->
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok-maven-plugin</artifactId>
+                <version>${version.lombok-maven-plugin}</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+                    <outputDirectory>${project.basedir}/target/generated-sources/delombok</outputDirectory>
+                    <addOutputDirectory>false</addOutputDirectory>
+                </configuration>
+            </plugin>
         </plugins>
+
     </build>
 
     <profiles>
@@ -190,6 +233,18 @@
             <id>release</id>
             <build>
                 <plugins>
+<!--                    <plugin>-->
+<!--                        <groupId>org.projectlombok</groupId>-->
+<!--                        <artifactId>lombok-maven-plugin</artifactId>-->
+<!--                        <executions>-->
+<!--                            <execution>-->
+<!--                                <phase>generate-sources</phase>-->
+<!--                                <goals>-->
+<!--                                    <goal>delombok</goal> &lt;!&ndash; The released sources do not contain lombok. &ndash;&gt;-->
+<!--                                </goals>-->
+<!--                            </execution>-->
+<!--                        </executions>-->
+<!--                    </plugin>-->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-release-plugin</artifactId>

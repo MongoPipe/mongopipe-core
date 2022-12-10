@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.mongopipe.core.migration;
+package org.mongopipe.core.migration.source;
 
 import org.mongopipe.core.model.Pipeline;
 
-public interface MigrablePipeline {
-  Long getLastModifiedTime(); // file/source last modified time, used as first check before checksum computation.
-  Pipeline getPipeline();     // Consider providing this lazily.
+public interface MigratablePipeline {
+  Long getLastModifiedTime();
+  Pipeline getPipeline();
+  String getSourceName();
 }

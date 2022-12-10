@@ -16,6 +16,7 @@
 
 package org.mongopipe.core.runner.invocation.handler;
 
+import lombok.CustomLog;
 import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.annotation.Param;
 import org.mongopipe.core.annotation.PipelineRun;
@@ -23,8 +24,6 @@ import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.mongopipe.core.exception.PipelineNotFoundException;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.runner.context.RunContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -40,8 +39,8 @@ import static org.mongopipe.core.util.ReflectionUtil.getMethodGenericType;
  * - are not annotated with @PipelineRun and they do not match any possible CRUD method but a pipeline exists with the pipeline id being
  *   "storeClassName.methodName".
  */
+@CustomLog
 public class PipelineInvocationHandler implements InvocationHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(PipelineInvocationHandler.class);
   private final Class storeClass;
   private final RunContext runContext;
   private final Method method;

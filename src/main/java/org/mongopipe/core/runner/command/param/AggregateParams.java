@@ -25,7 +25,7 @@ import static org.mongopipe.core.runner.command.param.CommandOptions.TYPE_KEY;
 /**
  * Stores parameters for <a href="https://www.mongodb.com/docs/manual/reference/method/db.collection.aggregate/">aggregate</a>.
  */
-@BsonDiscriminator(value=AggregateParams.TYPE, key=TYPE_KEY)
+@BsonDiscriminator(value = AggregateParams.TYPE, key = TYPE_KEY)
 public class AggregateParams extends CommandOptions {
   public static final String TYPE = "aggregate";
   private final String type = TYPE;

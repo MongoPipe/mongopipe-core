@@ -6,11 +6,11 @@ import java.util.List;
 
 public interface FetchPipeline {
 
-    List<Pipeline> getAll();
+  List<Pipeline> getAll();
 
-    Pipeline getById(String id);
+  Pipeline getById(String id);
 
-    default void update() {
+  default void update() {
 
-    }
+  }
 }

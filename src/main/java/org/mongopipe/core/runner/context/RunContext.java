@@ -26,6 +26,7 @@ import org.mongopipe.core.Stores;
 import org.mongopipe.core.config.MongoPipeConfig;
 import org.mongopipe.core.config.PojoCodecConfig;
 import org.mongopipe.core.exception.MongoPipeConfigException;
+import org.mongopipe.core.migration.PipelineMigrationSourceImpl;
 import org.mongopipe.core.migration.PipelineMigrationSource;
 import org.mongopipe.core.runner.PipelineRunner;
 import org.mongopipe.core.store.PipelineStore;
@@ -51,6 +52,7 @@ public class RunContext {
     id = mongoPipeConfig.getId(); // same as the mongoPipeConfig
     this.mongoPipeConfig = mongoPipeConfig;
     this.mongoClient = mongoPipeConfig.getMongoClient(); // nullable
+    pipelineMigrationSource = new PipelineMigrationSourceImpl(mongoPipeConfig.getMigrationConfig());
   }
 
   /**

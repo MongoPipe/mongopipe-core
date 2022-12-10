@@ -16,7 +16,11 @@
 
 package org.mongopipe.core.annotation;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Annotate Mongo item/entity classes.
@@ -33,6 +37,10 @@ public @interface Item {
    */
   String collection() default "";
 
+  /**
+   * The Java class type of the stored item.
+   * @return
+   */
   Class type();
 
   /**

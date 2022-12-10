@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package org.mongopipe.core.migration;
+package org.mongopipe.core.migration.source;
 
-import org.mongopipe.core.migration.source.MigratablePipeline;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
-import java.util.stream.Stream;
-
-public interface PipelineMigrationSource {
-  Stream<MigratablePipeline> getMigrablePipelines();
+@Data
+@RequiredArgsConstructor
+@ToString
+public class JarPipelineEntry {
+  private final String path;
+  private final Long lastModifiedTime;
+  private final String jarPath;
 }

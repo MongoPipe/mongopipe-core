@@ -16,19 +16,18 @@
 
 package org.mongopipe.core;
 
+import lombok.CustomLog;
 import org.mongopipe.core.config.MongoPipeConfig;
 import org.mongopipe.core.runner.context.RunContextProvider;
 import org.mongopipe.core.runner.invocation.StoresLoader;
 import org.mongopipe.core.store.PipelineStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Stores factory. The user provides the interface containing both @PipelineRun methods and CRUD methods and receives an implementation for
  * his interface allowing execution of DB stored pipelines or CRUD operations.
  */
+@CustomLog
 public class Stores {
-  private static final Logger LOG = LoggerFactory.getLogger(Stores.class);
   private static StoresLoader storesLoader = new StoresLoader();
 
   /**

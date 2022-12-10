@@ -16,16 +16,16 @@
 
 package org.mongopipe.core.exception;
 
-public class MongoPipeConfigException extends RuntimeException {
-  public MongoPipeConfigException(String message) {
+public class MongoPipeMigrationException extends RuntimeException {
+  public MongoPipeMigrationException(String message) {
     super(message);
   }
 
-  public MongoPipeConfigException(String message, Throwable cause) {
+  public MongoPipeMigrationException(String message, Throwable cause) {
     super(message, cause);
   }
 
-  public MongoPipeConfigException(Throwable cause) {
+  public MongoPipeMigrationException(Throwable cause) {
     super(cause.getMessage(), cause);
   }
 }

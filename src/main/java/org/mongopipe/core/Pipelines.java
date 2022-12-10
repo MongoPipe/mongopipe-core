@@ -16,14 +16,13 @@
 
 package org.mongopipe.core;
 
+import lombok.CustomLog;
 import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.mongopipe.core.migration.MigrationRunner;
 import org.mongopipe.core.runner.PipelineRunner;
 import org.mongopipe.core.runner.context.RunContext;
 import org.mongopipe.core.runner.context.RunContextProvider;
 import org.mongopipe.core.store.PipelineStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,8 +32,8 @@ import static org.mongopipe.core.runner.context.RunContextProvider.DEFAULT_CONTE
 /**
  * Factories for pipelines.
  */
+@CustomLog
 public class Pipelines {
-  private static final Logger LOG = LoggerFactory.getLogger(Pipelines.class);
   private static Map<String, PipelineStore> STORE_MAP = new HashMap<>();
   private static Map<String, PipelineRunner> RUNNER_MAP = new HashMap<>();
 
@@ -97,14 +96,13 @@ public class Pipelines {
   /**
    * Load pipelines for the configured pipeline source (default is to load them from classpath path) and update the ones that have changed.
    * This should be called at program startup.
-   * @param runConfigId
    */
   public static void startMigration(String runConfigId) {
     new MigrationRunner(RunContextProvider.getContext(runConfigId), getStore(runConfigId)).run();
   }
 
   /**
-   * @see Pipelines#startMigration(String)
+   * @see Pipelines#startMigration(String).
    */
   public static void startMigration() {
     startMigration(DEFAULT_CONTEXT_ID);

@@ -17,12 +17,17 @@
 package org.mongopipe.core.runner;
 
 
+import lombok.CustomLog;
 import org.bson.Document;
 import org.mongopipe.core.Stores;
 import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.mongopipe.core.exception.MongoPipeRunException;
 import org.mongopipe.core.model.Pipeline;
-import org.mongopipe.core.runner.command.*;
+import org.mongopipe.core.runner.command.AggregateCommand;
+import org.mongopipe.core.runner.command.CommandSupplier;
+import org.mongopipe.core.runner.command.FindOneAndUpdateCommand;
+import org.mongopipe.core.runner.command.UpdateManyCommand;
+import org.mongopipe.core.runner.command.UpdateOneCommand;
 import org.mongopipe.core.runner.command.param.AggregateParams;
 import org.mongopipe.core.runner.command.param.FindOneAndUpdateOptions;
 import org.mongopipe.core.runner.command.param.UpdateManyOptions;
@@ -30,11 +35,13 @@ import org.mongopipe.core.runner.command.param.UpdateOneOptions;
 import org.mongopipe.core.runner.context.RunContext;
 import org.mongopipe.core.store.PipelineStore;
 import org.mongopipe.core.util.BsonUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -45,8 +52,8 @@ import static org.mongopipe.core.util.ReflectionUtil.getMethodGenericType;
  * Used as an alternative to store classes (annotated with @Store) to generically run pipelines.
  * Use the {@link Stores} class to create a runner. A runner is thread safe and does not need to be recreated.
  */
+@CustomLog
 public class PipelineRunner {
-  private static final Logger LOG = LoggerFactory.getLogger(PipelineRunner.class);
   static Map<String, CommandSupplier> SUPPLIERS = new HashMap<>();
 
   // Consider also allowing the calling directly the driver API with the evaluated pipeline, in future.
@@ -71,12 +78,7 @@ public class PipelineRunner {
 
   /**
    * Allows running a pipeline event if it was not previously stored with PipelineStore in the db.
-   * @param pipeline
-   * @param returnClass
    * @param returnContainerClass  In case return type is a List, Iterable, Stream, etc
-   * @param parameters  Pipeline runtime parameters that replace the $paramName variables from the pipeline.
-   * @param <T>
-   * @return
    */
   public <T> T run(Pipeline pipeline, Class returnClass, Class<T> returnContainerClass, Map<String, ?> parameters) {
     validate(pipeline);
@@ -152,12 +154,7 @@ public class PipelineRunner {
 
   /**
    * Runs a pipeline by id.
-   * @param pipelineId
-   * @param returnClass
    * @param containerClass  A container class e.g. Stream.class, List.class, Iterable.class.
-   * @param parameters
-   * @param <T>
-   * @return
    */
   public <T> T run(String pipelineId, Class returnClass, Class<T> containerClass, Map<String, ?> parameters) {
     return run(pipelineStore.getPipeline(pipelineId), returnClass, containerClass, parameters);
@@ -175,6 +172,12 @@ public class PipelineRunner {
     return run(pipelineStore.getPipeline(pipelineId), Document.class, Stream.class, parameters);
   }
 
+  /**
+   * Runs the pipeline and returns the results as a stream of elements of the given type.
+   * E.g.: <code>
+   *   Pipelines.getRunner().runAndList("matchingPizzasBySize", Pizza.class, Maps.of("pizzaSize", "medium"))
+   * </code>
+   */
   public <T> Stream<T> runAndStream(String pipelineId, Class<T> elementClass, Map<String, ?> parameters) {
     return run(pipelineStore.getPipeline(pipelineId), elementClass, Stream.class, parameters);
   }
@@ -184,6 +187,12 @@ public class PipelineRunner {
     return run(pipelineStore.getPipeline(pipelineId), null, List.class, parameters);
   }
 
+  /**
+   * Runs the pipeline and returns the results as a list of elements of given type.
+   * E.g.: <code>
+   *   Pipelines.getRunner().runAndList("matchingPizzasBySize", Pizza.class, Maps.of("pizzaSize", "medium"))
+   * </code>
+   */
   public <T> List<T> runAndList(String pipelineId, Class<T> elementClass, Map<String, ?> parameters) {
     return run(pipelineStore.getPipeline(pipelineId), elementClass, List.class, parameters);
   }

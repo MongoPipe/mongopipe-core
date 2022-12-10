@@ -33,8 +33,7 @@ public class PojoCodecConfig {
   private static CodecRegistry codecRegistry;
 
   /**
-   * Returns the CodecRegistry used internally. Can be enhanced by the user with new ClassModels if needed.
-   * @return
+   * @return the CodecRegistry used internally. Can be enhanced by the user with new ClassModels if needed.
    */
   public static CodecRegistry getCodecRegistry() {
     if (codecRegistry != null) {

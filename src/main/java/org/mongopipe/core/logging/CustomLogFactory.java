@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.mongopipe.core.migration;
+package org.mongopipe.core.logging;
 
-import org.mongopipe.core.migration.source.MigratablePipeline;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.stream.Stream;
+public class CustomLogFactory {
 
-public interface PipelineMigrationSource {
-  Stream<MigratablePipeline> getMigrablePipelines();
+  public static Logger getLogger(String clazz) {
+    return LoggerFactory.getLogger(clazz);
+  }
 }

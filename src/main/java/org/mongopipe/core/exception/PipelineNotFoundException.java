@@ -17,9 +17,11 @@
 package org.mongopipe.core.exception;
 
 public class PipelineNotFoundException extends RuntimeException {
+
   public PipelineNotFoundException(String pipelineId) {
     super("Pipeline not found: " + pipelineId);
   }
+
   public PipelineNotFoundException(String pipelineId, String details) {
     super("Pipeline not found: '" + pipelineId + "'. " + details);
   }
