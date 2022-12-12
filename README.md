@@ -1,9 +1,9 @@
 # mongopipe-core
 
-
 <a href="https://github.com/MongoPipe/">
-<img src="https://github.com/MongoPipe/mongopipe-core/blob/main/docs/mongopipe.gif?raw=true" alt="logo" height="180px" align="right"/>
+<img src="https://github.com/MongoPipe/mongopipe-core/blob/main/docs/mongopipe.gif?raw=true" alt="logo.png" height="150px" align="right"/>
 </a>
+
 [![Licence](https://img.shields.io/hexpm/l/plug.svg)](https://github.com/MongoPipe/mongopipe-core/blob/master/LICENSE)
 [![Open Source](https://badges.frapsoft.com/os/v3/open-source.svg)](https://opensource.org/)
 [![Supported JVM](https://img.shields.io/badge/supported%20JVM-8%2C%209+%20(19)-blueviolet)](https://img.shields.io/badge/supported%20JVM-8%2C%209+%20(19)-blueviolet)
@@ -18,7 +18,7 @@ A MongoDB **aggregation pipeline is a BSON document, so store it in the database
 Usage examples:
 * You are doing fraud detection using pipelines, a DBA might like to tune **urgently** some pipelines rules according to a newly detected fraud risk.
 * You have an UI and a client or administrator wants to change **easily** the values displayed by a dynamic combo box(pipeline backed), or to add new chart(pipeline backed) without waiting for a dedicated release with the new functionality.
-* You have multiple reports backed by materialized views or pipelines. You want to easily change the reports via API. 
+* You have multiple reports backed by materialized views or pipelines. You want to easily change the reports via API.
 
 Parameterized pipelines running, dynamic pipeline management, versioning and automatic migration are supported. <br>
 MongoDB pipelines can be used for both **querying and updating** the data.
@@ -70,14 +70,14 @@ Stores.from(MyRestaurant.class)
 1. For **generic running** usages like the ones in the Intro section, meaning no need for pipeline stores(@Store annotated), you can use the
    `Pipelines.getRunner().run` method.  More here: [Generic creation and running](README.md#Dynamic-creation-and-running) <br>
    You only need the pipeline document to exist in the database collection (*pipeline_store*) or to be provided inline.
-2. The parameters actual values provided are expected to be in the same order as in the pipeline template. For clearer identification 
-   annotate using `@Param` the method parameter and provide the template parameter name: <br> 
-     `List<Pizza> matchingPizzasBySize(@Param("pizzaSize") String pizzaSize)`.
-3. As secondary functionality, it supports generation of a CRUD operation just from the method naming similar with Spring Data. 
+2. The parameters actual values provided are expected to be in the same order as in the pipeline template. For clearer identification
+   annotate using `@Param` the method parameter and provide the template parameter name: <br>
+   `List<Pizza> matchingPizzasBySize(@Param("pizzaSize") String pizzaSize)`.
+3. As secondary functionality, it supports generation of a CRUD operation just from the method naming similar with Spring Data.
    See [CRUD stores](README.md#CRUD-stores)
 
-### 3. Create BSON pipeline 
-Create resource file `myFirstPipeline.bson` that will be automatically inserted(via migration process) in the database collection 
+### 3. Create BSON pipeline
+Create resource file `myFirstPipeline.bson` that will be automatically inserted(via migration process) in the database collection
 `pipeline_store`:
 
 ```bson
@@ -93,8 +93,8 @@ Create resource file `myFirstPipeline.bson` that will be automatically inserted(
 ```
 The file above should be stored in under folder `"src/main/resources/pipelines"` (configurable (step 1) via
 `MongoPipeConfig#migrationConfig#pipelinesPath`).<br>
-On migration (at process startup time) all the pipelines from that folder will be created/updated in the database collection 
-`pipeline_store`. <br> 
+On migration (at process startup time) all the pipelines from that folder will be created/updated in the database collection
+`pipeline_store`. <br>
 If you are not using Spring and mongopipe-spring dependency you need to manually call the migration on process start like this:
 `Pipelines.startMigration()`.
 ![logo](docs/pipeline_store.png ) <br>
@@ -102,12 +102,12 @@ If you are not using Spring and mongopipe-spring dependency you need to manually
 NOTE:
 1. The pipelines can be also **manually** created using the PipelineStore API(`Pipelines.getStore()`).
 2. The file above although static it is input into the migration utility at process startup and thus seeded in the database. It can then be
-   updated at runtime via the PipelineStore API or the file can be manually modified and on process startup it will be 
-   automatically updated in the database by the migration process. More on [Migration)(README.md#Migration).    
-3. **The parameters form is `"${paramName}"`**. <br> 
-   Parameters inside the pipeline template **must** be strings (e.g. `"..": "${paramName}"`) in order to be a valid BSON. 
-   On pipeline run the **actual parameters values can be of any type including complex types: lists, maps, pojos** as long as it can be 
-   converted to a BSON type.<br> 
+   updated at runtime via the PipelineStore API or the file can be manually modified and on process startup it will be
+   automatically updated in the database by the migration process. More on [Migration)(README.md#Migration).
+3. **The parameters form is `"${paramName}"`**. <br>
+   Parameters inside the pipeline template **must** be strings (e.g. `"..": "${paramName}"`) in order to be a valid BSON.
+   On pipeline run the **actual parameters values can be of any type including complex types: lists, maps, pojos** as long as it can be
+   converted to a BSON type.<br>
    For example on pipeline running if the actual parameter value is an integer (e.g. 10) the string value: <br>
    `"x": "${paramName}",` will become an integer value:<br>
    `"x": 10,`
@@ -139,8 +139,8 @@ If you do not want to use an interface to define the pipeline run methods you ca
     List<Pizza> pizzas = pipelineRunner.run("myPipeline", Pizza.class, Maps.of("size", "medium", "available", true)) // Returns a stream
         .collect(Collectors.toList());
 ```
-NOTE: 
-1. Store obtained via `Stores.getPipelineStore()` can be used also to create, update and delete pipelines. 
+NOTE:
+1. Store obtained via `Stores.getPipelineStore()` can be used also to create, update and delete pipelines.
 2. You can also parameterize an entire pipeline stage/subparts of a stage and send a list/map/pojo/bson as an actual parameter. For example
    When sorting on multiple fields the `{field1: 1, field2: -1}` can be provided as a Java map or pojo class
 
@@ -171,16 +171,16 @@ public interface PizzaStore {
 ```
 NOTE:
 1. The store(via the @Store annotation) decides where to put the items and not vice versa meaning an item type class is storage
-agnostic. Thus, the `@Store#items` field acts as a database mapping definition. 
+   agnostic. Thus, the `@Store#items` field acts as a database mapping definition.
 2. This feature is secondary, main feature is to manage and run pipelines.
 
 # Update operations
 Pipelines are mostly used for queries, but they can be used also for updating data:
 1. Using [update stages](https://www.mongodb.com/docs/manual/tutorial/update-documents-with-aggregation-pipeline/) like for example the `$replaceRoot`.
 2. Using dedicated commands like for example [findOneAndUpdate](findOneAndUpdate()) which can be run by setting `Pipeline#commandOptions`.
-   The findOneAndUpdate allows also to insert the document if it does not exist.   
+   The findOneAndUpdate allows also to insert the document if it does not exist.
 
-Without pipelines, you can use [CRUD stores](README.md#CRUD-stores)   
+Without pipelines, you can use [CRUD stores](README.md#CRUD-stores)
 
 # Support
 <img src="https://github.com/ionic-team/ionicons/blob/main/src/svg/settings-outline.svg" width="20"/><img src="https://github.com/ionic-team/ionicons/blob/main/src/svg/bug-outline.svg" width="20"/>
