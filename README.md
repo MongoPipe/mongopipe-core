@@ -13,6 +13,7 @@
 
 
 # Intro
+This is for MongoDB aggregation pipeline management. <br>
 A MongoDB **aggregation pipeline is a BSON document, so store it in the database like other BSON documents.** <br>
 **Hardcoding** is avoided. Code is static. Business rules are dynamic. <br>
 Usage examples:
@@ -20,9 +21,8 @@ Usage examples:
 * You have an UI and a client or administrator wants to change **easily** the values displayed by a dynamic combo box(pipeline backed), or to add new chart(pipeline backed) without waiting for a dedicated release with the new functionality.
 * You have multiple reports backed by materialized views or pipelines. You want to easily change the reports via API.
 
-Parameterized pipelines running, dynamic pipeline management, versioning and automatic migration are supported. <br>
-MongoDB pipelines can be used for both **querying and updating** the data.
-![logo](docs/vs.png ) <br>
+MongoDB pipelines can be used for both **querying and updating** the data.<br>
+No hardcoding meaning: <br> ![logo](docs/vs.png ) <br>
 
 ## 3 easy steps.
 1. [Configuration](README.md#Configuration)
