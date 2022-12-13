@@ -7,7 +7,7 @@
 [![Licence](https://img.shields.io/hexpm/l/plug.svg)](https://github.com/MongoPipe/mongopipe-core/blob/master/LICENSE)
 [![Open Source](https://badges.frapsoft.com/os/v3/open-source.svg)](https://opensource.org/)
 [![Supported JVM](https://img.shields.io/badge/supported%20JVM-8%2C%209+%20(19)-blueviolet)](https://img.shields.io/badge/supported%20JVM-8%2C%209+%20(19)-blueviolet)
-<!--[![Maven Central with version prefix filter](https://img.shields.io/maven-central/v/org.mongopipe/mongopipe-core/1)](https://maven-badges.herokuapp.com/maven-central/org.mongopipe/mongopipe-core/) -->
+[![Maven Central with version prefix filter](https://maven-badges.herokuapp.com/maven-central/org.mongopipe/mongopipe-core/badge.svg)](https://search.maven.org/artifact/org.mongopipe/mongopipe-core/1.0/jar)
 [![GitHub open issues](https://img.shields.io/github/issues/mongopipe/mongopipe-core?color=GREEN)](https://img.shields.io/github/issues/mongopipe/mongopipe-core?color=GREEN)
 [![GitHub open issues](https://img.shields.io/github/last-commit/mongopipe/mongopipe-core)](https://img.shields.io/github/last-commit/mongopipe/mongopipe-core)
 
@@ -27,7 +27,7 @@ No hardcoding meaning: <br> ![logo](docs/vs.png ) <br>
 ## 3 easy steps.
 1. [Configuration](README.md#Configuration)
 2. [Create your @Store](README.md#Create-your-store)
-3. [Create BSON pipeline](README.md#Create-BSON-pipeline) 
+3. [Create BSON pipeline](README.md#Create-BSON-pipeline)
 
 ### 1. Configuration
 Maven dependency
@@ -112,8 +112,8 @@ NOTE:
    For example on pipeline running if the actual parameter value is an integer (e.g. 10) the string value: <br>
    `"x": "${paramName}",` will become an integer value:<br>
    `"x": 10,`
-4. The input source from where the pipelines are seeded (via migration) is defaulted to the classpath but can also be an external system. <br> 
-Find more examples in samples [repo](https://github.com/MongoPipe/Examples).
+4. The input source from where the pipelines are seeded (via migration) is defaulted to the classpath but can also be an external system. <br>
+   Find more examples in samples [repo](https://github.com/MongoPipe/Examples).
 
 # Dynamic creation and running
 If you do not want to use an interface to define the pipeline run methods you can instead manually both create and run them:
@@ -175,6 +175,9 @@ NOTE:
 1. The store(via the @Store annotation) decides where to put the items and not vice versa meaning an item type class is storage
    agnostic. Thus, the `@Store#items` field acts as a database mapping definition.
 2. This feature is secondary, main feature is to manage and run pipelines.
+
+# More examples
+Find more examples in samples [repo](https://github.com/MongoPipe/Examples).
 
 # Update operations
 Pipelines are mostly used for queries, but they can be used also for updating data:
