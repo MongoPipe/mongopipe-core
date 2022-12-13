@@ -16,9 +16,11 @@
 
 package org.mongopipe.core.migration.source;
 
-import lombok.CustomLog;
+import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.config.MigrationConfig;
 import org.mongopipe.core.exception.MongoPipeMigrationException;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 
 import java.io.IOException;
 import java.net.JarURLConnection;
@@ -32,8 +34,8 @@ import java.util.stream.Collectors;
 import static org.mongopipe.core.migration.source.FileMigratablePipelineScanner.CANDIDATE_EXTENSIONS;
 import static org.mongopipe.core.migration.source.FileMigratablePipelineScanner.getExtension;
 
-@CustomLog
 public class JarMigratablePipelineScanner implements MigratablePipelineScanner {
+  private static final Log LOG = CustomLogFactory.getLogger(JarMigratablePipelineScanner.class);
 
   private JarFile openJarFile(String separator, URL urlInsideJar) throws IOException {
     URLConnection urlConnection = urlInsideJar.openConnection();

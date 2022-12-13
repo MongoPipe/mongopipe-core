@@ -16,16 +16,16 @@
 
 package org.mongopipe.core.runner.invocation.handler;
 
-import lombok.CustomLog;
 import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.annotation.Param;
 import org.mongopipe.core.annotation.PipelineRun;
 import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.mongopipe.core.exception.PipelineNotFoundException;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.runner.context.RunContext;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
@@ -39,8 +39,8 @@ import static org.mongopipe.core.util.ReflectionUtil.getMethodGenericType;
  * - are not annotated with @PipelineRun and they do not match any possible CRUD method but a pipeline exists with the pipeline id being
  *   "storeClassName.methodName".
  */
-@CustomLog
-public class PipelineInvocationHandler implements InvocationHandler {
+public class PipelineInvocationHandler implements StoreMethodHandler {
+  private static final Log LOG = CustomLogFactory.getLogger(PipelineInvocationHandler.class);
   private final Class storeClass;
   private final RunContext runContext;
   private final Method method;
@@ -52,7 +52,7 @@ public class PipelineInvocationHandler implements InvocationHandler {
   }
 
   @Override
-  public Object invoke(Object proxy, Method runMethod, Object[] args) {
+  public Object run(Object proxy, Method runMethod, Object[] args) throws Throwable {
     String pipelineId;
     boolean isAnnotationPresent = method.isAnnotationPresent(PipelineRun.class);
     pipelineId = isAnnotationPresent ? method.getAnnotation(PipelineRun.class).value() :

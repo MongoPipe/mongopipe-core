@@ -16,17 +16,19 @@
 
 package org.mongopipe.core.config;
 
-import lombok.Builder;
-import lombok.Data;
-
-@Data
-@Builder
 public class MigrationConfig {
   public static final String DEFAULT_PATH = "pipelines";
-  @Builder.Default
-  boolean enabled = true;
-  @Builder.Default
+  boolean enabled;
   String pipelinesPath = DEFAULT_PATH;
+
+  private MigrationConfig(Builder builder) {
+    setEnabled(builder.enabled);
+    setPipelinesPath(builder.pipelinesPath);
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
 
   public boolean isEnabled() {
     return enabled;
@@ -49,5 +51,28 @@ public class MigrationConfig {
    */
   public void setPipelinesPath(String pipelinesPath) {
     this.pipelinesPath = pipelinesPath;
+  }
+
+
+  public static final class Builder {
+    private boolean enabled = true;
+    private String pipelinesPath = DEFAULT_PATH;
+
+    private Builder() {
+    }
+
+    public Builder enabled(boolean val) {
+      enabled = val;
+      return this;
+    }
+
+    public Builder pipelinesPath(String val) {
+      pipelinesPath = val;
+      return this;
+    }
+
+    public MigrationConfig build() {
+      return new MigrationConfig(this);
+    }
   }
 }

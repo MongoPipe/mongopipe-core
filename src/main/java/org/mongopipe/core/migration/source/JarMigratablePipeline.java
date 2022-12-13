@@ -16,8 +16,10 @@
 
 package org.mongopipe.core.migration.source;
 
-import lombok.CustomLog;
+import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.exception.MongoPipeMigrationException;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 import org.mongopipe.core.model.Pipeline;
 
 import java.io.IOException;
@@ -30,8 +32,8 @@ import java.util.Optional;
 
 import static org.mongopipe.core.util.BsonUtil.toPojo;
 
-@CustomLog
 public class JarMigratablePipeline implements MigratablePipeline {
+  private static final Log LOG = CustomLogFactory.getLogger(JarMigratablePipeline.class);
   private Pipeline pipeline;
   private JarPipelineEntry jarPipelineEntry;
 

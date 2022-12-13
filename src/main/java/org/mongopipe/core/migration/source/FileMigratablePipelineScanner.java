@@ -16,9 +16,11 @@
 
 package org.mongopipe.core.migration.source;
 
-import lombok.CustomLog;
+import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.config.MigrationConfig;
 import org.mongopipe.core.exception.MongoPipeMigrationException;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -30,8 +32,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@CustomLog
 public class FileMigratablePipelineScanner implements MigratablePipelineScanner {
+  private static final Log LOG = CustomLogFactory.getLogger(FileMigratablePipelineScanner.class);
   public static final List<String> CANDIDATE_EXTENSIONS = Arrays.asList(new String[] { "bson", "json" });
 
   private List<File> findPipelinesInFolder(String directoryName) {

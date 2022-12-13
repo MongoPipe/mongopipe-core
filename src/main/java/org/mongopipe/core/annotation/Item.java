@@ -33,13 +33,11 @@ public @interface Item {
   /**
    * Default table/collection on which the crud operations take place for this item.
    * If missing will be defaulted to the annotated type class name.
-   * @return
    */
   String collection() default "";
 
   /**
    * The Java class type of the stored item.
-   * @return
    */
   Class type();
 

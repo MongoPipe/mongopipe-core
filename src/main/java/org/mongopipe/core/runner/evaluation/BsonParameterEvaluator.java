@@ -16,14 +16,16 @@
 
 package org.mongopipe.core.runner.evaluation;
 
-import lombok.CustomLog;
 import org.bson.BsonArray;
 import org.bson.BsonDocument;
 import org.bson.BsonDouble;
 import org.bson.BsonString;
 import org.bson.BsonValue;
+import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.exception.MongoPipeConfigException;
 import org.mongopipe.core.exception.MongoPipeRunException;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,8 +56,8 @@ import static org.mongopipe.core.util.BsonUtil.toBsonValue;
  * This class evaluates the parameters from a BsonDocument or List<BsonDocument> and replaces them with user provided values.
  * The parent is the one that decides the placement of the child evaluated value via passed in consumer. Might be changed in future.
  */
-@CustomLog
 public class BsonParameterEvaluator {
+  private static final Log LOG = CustomLogFactory.getLogger(BsonParameterEvaluator.class);
   // Could not use '${param}' because JsonScanner considers the { as a start of a new document. Would work only if enclosing value in quotes
   // which may not seem natural for the user when the value let's say is a number, boolean, or document/map, so stay with $ for the moment.
   public static final String DOLLAR = "$";

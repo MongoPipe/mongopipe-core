@@ -271,4 +271,27 @@ public class Pipeline extends MongoEntity {
   public void setExtra(Serializable extra) {
     this.extra = extra;
   }
+
+  @Override
+  public java.lang.String toString() {
+    return "Pipeline(version="
+        + this.getVersion()
+        + ", createdAt="
+        + this.getCreatedAt()
+        + ", updatedAt="
+        + this.getUpdatedAt()
+        + ", pipeline="
+        + this.getPipeline()
+        + ", pipelineAsString="
+        + this.getPipelineAsString()
+        + ", collection="
+        + this.getCollection()
+        + ", description="
+        + this.getDescription()
+        + ", commandOptions="
+        + this.getCommandOptions()
+        + ", extra="
+        + this.getExtra()
+        + ")";
+  }
 }

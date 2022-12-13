@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.mongopipe.core.store;
+package org.mongopipe.core.runner.invocation.handler;
 
-public class PipelineStoreTest {
+import java.lang.reflect.Method;
 
-  // Add tests
-
+public interface StoreMethodHandler {
+  Object run(Object proxy, Method method, Object[] args) throws Throwable;
 }

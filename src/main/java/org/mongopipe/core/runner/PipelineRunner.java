@@ -17,7 +17,6 @@
 package org.mongopipe.core.runner;
 
 
-import lombok.CustomLog;
 import org.bson.Document;
 import org.mongopipe.core.Stores;
 import org.mongopipe.core.exception.MongoPipeConfigException;
@@ -52,7 +51,6 @@ import static org.mongopipe.core.util.ReflectionUtil.getMethodGenericType;
  * Used as an alternative to store classes (annotated with @Store) to generically run pipelines.
  * Use the {@link Stores} class to create a runner. A runner is thread safe and does not need to be recreated.
  */
-@CustomLog
 public class PipelineRunner {
   static Map<String, CommandSupplier> SUPPLIERS = new HashMap<>();
 

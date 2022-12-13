@@ -16,7 +16,6 @@
 
 package org.mongopipe.core.store;
 
-import lombok.Data;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;
 import org.junit.Test;
@@ -28,14 +27,12 @@ import org.mongopipe.core.util.AbstractMongoDBTest;
 
 public class CustomStoreTest extends AbstractMongoDBTest {
 
-  @Store(
-      items = {
-          @Item(type = Bike.class, collection = "test")
-      }
-  )
+  @Store(items = {@Item(type = Bike.class, collection = "test")})
   public interface BikeStore {
     Bike save(Bike bike);
+
     Bike findById(ObjectId id);
+
     Long count();
   }
 
@@ -45,7 +42,7 @@ public class CustomStoreTest extends AbstractMongoDBTest {
     String description = "some bike";
     Bike bike = new Bike();
     bike.setDescription(description);
-    BikeStore bikeStore = Stores.get(BikeStore.class);
+    BikeStore bikeStore = Stores.from(BikeStore.class);
 
     // When
     Bike savedBike = bikeStore.save(bike);
@@ -56,20 +53,31 @@ public class CustomStoreTest extends AbstractMongoDBTest {
     assertEquals(description, bikeStore.findById(savedBike.getId()).getDescription());
   }
 
-  @Data
   public static class Car {
-    @BsonId
-    private Long nonObjectId;
+    @BsonId private Long nonObjectId;
     private String description;
+
+    public Long getNonObjectId() {
+      return nonObjectId;
+    }
+
+    public void setNonObjectId(Long nonObjectId) {
+      this.nonObjectId = nonObjectId;
+    }
+
+    public String getDescription() {
+      return description;
+    }
+
+    public void setDescription(String description) {
+      this.description = description;
+    }
   }
 
-  @Store(
-      items = {
-          @Item(type = Car.class, collection = "test")
-      }
-  )
+  @Store(items = {@Item(type = Car.class, collection = "test")})
   public interface CarStore {
     Car save(Car car);
+
     Car findById(Long id);
   }
 
@@ -78,9 +86,10 @@ public class CustomStoreTest extends AbstractMongoDBTest {
     // Given
     String description = "some car";
     Car car = new Car();
-    car.setNonObjectId(1L); // This is needed or else: "Invalid numeric type, found: OBJECT_ID".
+    car.setNonObjectId(1L); // This is needed or else: "Invalid numeric type, found:
+    // OBJECT_ID".
     car.setDescription(description);
-    CarStore carStore = Stores.get(CarStore.class);
+    CarStore carStore = Stores.from(CarStore.class);
 
     // When
     Car savedCar = carStore.save(car);

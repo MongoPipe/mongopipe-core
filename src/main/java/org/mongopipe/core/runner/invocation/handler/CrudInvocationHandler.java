@@ -16,19 +16,20 @@
 
 package org.mongopipe.core.runner.invocation.handler;
 
-import lombok.CustomLog;
+import org.mongopipe.core.Pipelines;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 import org.mongopipe.core.runner.context.RunContext;
 import org.mongopipe.core.store.MongoCrudStore;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
 /**
  * Calls methods on MongoCrudStore for methods that match to a MongoCrudStore method.
  */
-@CustomLog
-public class CrudInvocationHandler implements InvocationHandler {
+public class CrudInvocationHandler implements StoreMethodHandler {
+  private static final Log LOG = CustomLogFactory.getLogger(CrudInvocationHandler.class);
   private final Method mongoCrudMethod;
   private final MongoCrudStore mongoCrudStore;
 
@@ -38,7 +39,7 @@ public class CrudInvocationHandler implements InvocationHandler {
   }
 
   @Override
-  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+  public Object run(Object proxy, Method method, Object[] args) throws Throwable {
     Object result = mongoCrudMethod.invoke(mongoCrudStore, args);
 
     // Result default mappings

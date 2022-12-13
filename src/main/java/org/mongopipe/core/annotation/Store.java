@@ -44,14 +44,13 @@ public @interface Store {
    * Specify the mappings of each item. Observe that the store decides where to put the items and not vice versa (i.e. item is STORAGE
    * AGNOSTIC). The hardcoded config can be also stored in db or in a file like a relational definition tree and referenced by id
    * or defaulted. Another minor reason is that same entity might be stored in different stores/collections.
-   * @return
-   * e.g. <code>
+   * e.g. <pre>
    *   @Store(
    *   items = {
    *    @Item(type=MyItem.class, collection="my_items_collection")
    *    ...
    *   })
-   * </code>
+   * </pre>
    */
   Item[] items() default {};
 

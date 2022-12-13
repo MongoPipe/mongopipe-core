@@ -20,8 +20,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.FindOneAndReplaceOptions;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.result.InsertOneResult;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import org.bson.Document;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.codecs.pojo.annotations.BsonProperty;
@@ -68,14 +66,33 @@ public class MongoCrudStore<ItemType, Id> implements CrudStore<ItemType, Id> {
     collectionName = extractCollectionName(itemInfo.getCollection());
   }
 
-  @Data
-  @AllArgsConstructor
   private class ItemInfo {
     private Class type;
     private String collection;
     public ItemInfo(Item item) {
       setType(item.type());
       setCollection(item.collection());
+    }
+
+    public ItemInfo(Class type, String collection) {
+      this.type = type;
+      this.collection = collection;
+    }
+
+    public Class getType() {
+      return type;
+    }
+
+    public void setType(Class type) {
+      this.type = type;
+    }
+
+    public String getCollection() {
+      return collection;
+    }
+
+    public void setCollection(String collection) {
+      this.collection = collection;
     }
   }
 

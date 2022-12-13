@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.mongopipe.core.store;
+package org.mongopipe.core.logging;
 
-public class PipelineStoreTest {
-
-  // Add tests
-
+public interface LogFactory {
+  Log createLog(String clazz);
 }

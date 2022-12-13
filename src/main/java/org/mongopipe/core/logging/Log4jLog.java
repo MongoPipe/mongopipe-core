@@ -14,52 +14,36 @@
  * limitations under the License.
  */
 
-package org.mongopipe.core.model;
+package org.mongopipe.core.logging;
 
-import java.util.Date;
-import org.bson.codecs.pojo.annotations.BsonId;
+import org.apache.logging.log4j.Logger;
 
-// TODO: test also with inner class
-public class Pizza {
-  @BsonId Long id;
+public class Log4jLog implements Log {
+  private final Logger logger;
 
-  String name;
-
-  Date date;
-
-  Float price;
-
-  public Pizza() {}
-
-  public Long getId() {
-    return id;
+  public Log4jLog(Logger logger) {
+    this.logger = logger;
   }
 
-  public void setId(Long id) {
-    this.id = id;
+  public void debug(String message, Object... params) {
+    logger.debug(message, params);
   }
 
-  public String getName() {
-    return name;
+  public void info(String message, Object... params) {
+    logger.info(message, params);
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void warn(String message, Object... params) {
+    logger.warn(message, params);
   }
 
-  public Date getDate() {
-    return date;
+  public void error(String message, Object... params) {
+    logger.error(message, params);
   }
 
-  public void setDate(Date date) {
-    this.date = date;
+  public void error(String message, Exception exception) {
+    logger.error(message, exception);
   }
 
-  public Float getPrice() {
-    return price;
-  }
 
-  public void setPrice(Float price) {
-    this.price = price;
-  }
 }

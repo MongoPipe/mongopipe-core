@@ -16,13 +16,12 @@
 
 package org.mongopipe.core.store;
 
+import java.util.List;
 import org.bson.Document;
 import org.mongopipe.core.annotation.Param;
 import org.mongopipe.core.annotation.PipelineRun;
 import org.mongopipe.core.annotation.Store;
 import org.mongopipe.core.model.Pizza;
-
-import java.util.List;
 
 @Store
 public interface MyRestaurant {
@@ -40,5 +39,4 @@ public interface MyRestaurant {
 
   @PipelineRun("findOnePizzaAndUpdate")
   Document findOneAndUpdate(@Param("pizzaPrice") Integer pizzaPrice);
-
 }

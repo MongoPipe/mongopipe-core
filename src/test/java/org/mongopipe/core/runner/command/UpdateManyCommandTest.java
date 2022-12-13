@@ -16,14 +16,14 @@
 
 package org.mongopipe.core.runner.command;
 
+import static org.mongopipe.core.util.BsonUtil.*;
+
 import org.bson.Document;
 import org.junit.Test;
 import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.runner.command.param.UpdateManyOptions;
 import org.mongopipe.core.util.AbstractMongoDBTest;
-
-import static org.mongopipe.core.util.BsonUtil.*;
 
 public class UpdateManyCommandTest extends AbstractMongoDBTest {
 
@@ -32,11 +32,10 @@ public class UpdateManyCommandTest extends AbstractMongoDBTest {
     // Given
     Document filter = toDocument("{'size': \"medium\"}");
     Pipeline pipeline = loadResourceIntoPojo("command/updateMany/updateManyMatchingPizza.bson", Pipeline.class);
-    // Although the parameter is enclosed in quotes(i.e. a String), because it is a number and matches the full width of the string it will
+    // Although the parameter is enclosed in quotes(i.e. a String), because it
+    // is a number and matches the full width of the string it will
     // be replaced with a number.
-    pipeline.setCommandOptions(UpdateManyOptions.builder()
-        .filter(filter)
-        .build());
+    pipeline.setCommandOptions(UpdateManyOptions.builder().filter(filter).build());
     db.getCollection(pipeline.getCollection()).insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
     Pipelines.getStore().create(pipeline);
 
@@ -46,7 +45,6 @@ public class UpdateManyCommandTest extends AbstractMongoDBTest {
     // Then
     assertEquals(3, count);
     // Test that pipeline added extra field.
-    assertTrue(db.getCollection(pipeline.getCollection())
-        .find(filter).iterator().next().get("isVegan", Boolean.class));
+    assertTrue(db.getCollection(pipeline.getCollection()).find(filter).iterator().next().get("isVegan", Boolean.class));
   }
 }

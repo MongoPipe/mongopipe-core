@@ -29,19 +29,15 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import junit.framework.TestCase;
-import lombok.CustomLog;
 import org.mongopipe.core.Stores;
 import org.mongopipe.core.config.MongoPipeConfig;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 
-/**
- * TODO: Consider replacing with junit jupiter @Extension as @Before annotated method will not work if test class is extending TestCase.
- */
-@CustomLog
+/** TODO: Consider replacing with junit jupiter @Extension as @Before annotated method will not work if test class is extending TestCase. */
 public abstract class AbstractMongoDBTest extends TestCase {
-  /**
-   * please store Starter or RuntimeConfig in a static final field
-   * if you want to use artifact store caching (or else disable caching)
-   */
+  private static final Log LOG = CustomLogFactory.getLogger(AbstractMongoDBTest.class);
+  /** please store Starter or RuntimeConfig in a static final field if you want to use artifact store caching (or else disable caching) */
   public static final MongodStarter STARTER = MongodStarter.getDefaultInstance();
 
   public MongodExecutable mongodExecutable;
@@ -49,23 +45,24 @@ public abstract class AbstractMongoDBTest extends TestCase {
 
   public static int PORT;
   public static MongodConfig MONGOD_CONFIG;
+
   static {
     try {
-      // These 2 needs to be static pe JVM or Class in order for the tests to not fail.
-      // See https://github.com/flapdoodle-oss/de.flapdoodle.embed.mongo/blob/de.flapdoodle.embed.mongo-3.5.0/README.md#usage---optimization
+      // These 2 needs to be static pe JVM or Class in order for the tests to
+      // not fail.
+      // See
+      // https://github.com/flapdoodle-oss/de.flapdoodle.embed.mongo/blob/de.flapdoodle.embed.mongo-3.5.0/README.md#usage---optimization
       PORT = Network.getFreeServerPort();
-      MONGOD_CONFIG = MongodConfig.builder()
-          .version(Version.V4_4_17)
-          .net(new Net(PORT, Network.localhostIsIPv6()))
-          .build();
+      MONGOD_CONFIG = MongodConfig.builder().version(Version.V4_4_17).net(new Net(PORT, Network.localhostIsIPv6())).build();
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
+
   public MongoDatabase db;
   public MongoClient mongoClient;
 
-  protected void beforeEach() {  // See TO DO on class.
+  protected void beforeEach() { // See TO DO on class.
     newPipelinesConfig("pipeline_store", false);
   }
 
@@ -76,9 +73,7 @@ public abstract class AbstractMongoDBTest extends TestCase {
     mongod = mongodExecutable.start();
 
     ConnectionString connectionString = new ConnectionString("mongodb://localhost:" + PORT);
-    MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
-        .applyConnectionString(connectionString)
-        .build();
+    MongoClientSettings mongoClientSettings = MongoClientSettings.builder().applyConnectionString(connectionString).build();
     mongoClient = MongoClients.create(mongoClientSettings);
     db = mongoClient.getDatabase("test");
 
@@ -97,11 +92,12 @@ public abstract class AbstractMongoDBTest extends TestCase {
 
   protected void newPipelinesConfig(String storeCollection, boolean cacheEnabled) {
     // Consider this helper versus @Before because it allows configuration.
-    Stores.registerConfig(MongoPipeConfig.builder()
-        .uri("mongodb://localhost:" + PORT)
-        .databaseName("test")
-        .storeCollection(storeCollection)
-        .storeCacheEnabled(cacheEnabled)
-        .build());
+    Stores.registerConfig(
+        MongoPipeConfig.builder()
+            .uri("mongodb://localhost:" + PORT)
+            .databaseName("test")
+            .storeCollection(storeCollection)
+            .storeCacheEnabled(cacheEnabled)
+            .build());
   }
 }

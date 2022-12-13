@@ -16,7 +16,8 @@
 
 package org.mongopipe.core.runner.invocation.handler;
 
-import lombok.CustomLog;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -25,12 +26,12 @@ import java.util.Map;
 
 import static org.mongopipe.core.util.ReflectionUtil.getSimpleMethodId;
 
-@CustomLog
 public class ProxyInvocationHandler implements InvocationHandler {
+  private static final Log LOG = CustomLogFactory.getLogger(ProxyInvocationHandler.class);
   private final Class storeClass;
-  private final Map<String, InvocationHandler> methodInvocationHandlers;
+  private final Map<String, StoreMethodHandler> methodInvocationHandlers;
 
-  public ProxyInvocationHandler(Class storeClass, Map<String, InvocationHandler> methodInvocationHandlers) {
+  public ProxyInvocationHandler(Class storeClass, Map<String, StoreMethodHandler> methodInvocationHandlers) {
     this.storeClass = storeClass;
     this.methodInvocationHandlers = methodInvocationHandlers;
   }
@@ -38,7 +39,7 @@ public class ProxyInvocationHandler implements InvocationHandler {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
-      LOG.debug("Running store method {}#{}", method.getClass().getCanonicalName(), method.getName());
+      LOG.debug("Running store method {}#{}", method.getDeclaringClass().getCanonicalName(), method.getName());
       if (method.getDeclaringClass().equals(Object.class)) { // Diverge Object methods to avoid exceptions when being called.
         if (method.getName().equals("toString")) {
           return "proxy";
@@ -47,10 +48,11 @@ public class ProxyInvocationHandler implements InvocationHandler {
         }
       } else {
         String methodId = getSimpleMethodId(method);
-        return methodInvocationHandlers.get(methodId).invoke(proxy, method, args);
+        StoreMethodHandler storeMethodHandler = methodInvocationHandlers.get(methodId);
+        return storeMethodHandler.run(proxy, method, args);
       }
     } catch (InvocationTargetException ex) {
-      // this is needed to throw the original exception to the caller.
+      // throw the original exception to the caller.
       throw ex.getCause();
     }
   }

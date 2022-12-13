@@ -16,19 +16,82 @@
 
 package org.mongopipe.core.migration.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class PipelineMigrationStatus {
   String pipelineId;
   String checksum; // real checksum
   LocalDateTime updateTime;
+
+  public PipelineMigrationStatus() {
+
+  }
+
+  public PipelineMigrationStatus(String pipelineId, String checksum, LocalDateTime updateTime) {
+    this.pipelineId = pipelineId;
+    this.checksum = checksum;
+    this.updateTime = updateTime;
+  }
+
+  private PipelineMigrationStatus(Builder builder) {
+    setPipelineId(builder.pipelineId);
+    setChecksum(builder.checksum);
+    setUpdateTime(builder.updateTime);
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public String getPipelineId() {
+    return pipelineId;
+  }
+
+  public void setPipelineId(String pipelineId) {
+    this.pipelineId = pipelineId;
+  }
+
+  public String getChecksum() {
+    return checksum;
+  }
+
+  public void setChecksum(String checksum) {
+    this.checksum = checksum;
+  }
+
+  public LocalDateTime getUpdateTime() {
+    return updateTime;
+  }
+
+  public void setUpdateTime(LocalDateTime updateTime) {
+    this.updateTime = updateTime;
+  }
+
+  public static final class Builder {
+    private String pipelineId;
+    private String checksum;
+    private LocalDateTime updateTime;
+
+    private Builder() {
+    }
+
+    public Builder pipelineId(String val) {
+      pipelineId = val;
+      return this;
+    }
+
+    public Builder checksum(String val) {
+      checksum = val;
+      return this;
+    }
+
+    public Builder updateTime(LocalDateTime val) {
+      updateTime = val;
+      return this;
+    }
+
+    public PipelineMigrationStatus build() {
+      return new PipelineMigrationStatus(this);
+    }
+  }
 }

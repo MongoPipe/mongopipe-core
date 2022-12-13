@@ -16,10 +16,12 @@
 
 package org.mongopipe.core.migration;
 
-import lombok.CustomLog;
+import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.Stores;
 import org.mongopipe.core.config.MigrationConfig;
 import org.mongopipe.core.exception.MongoPipeMigrationException;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 import org.mongopipe.core.migration.model.MigrationStatus;
 import org.mongopipe.core.migration.model.PipelineMigrationStatus;
 import org.mongopipe.core.migration.model.Status;
@@ -42,8 +44,8 @@ import static org.mongopipe.core.util.MigrationUtil.getHash;
  * Runs the pipeline migration from a given source usually a resources folder.
  * This will allow the automated creation/update of pipelines on process startup.
  */
-@CustomLog
 public class MigrationRunner {
+  private static final Log LOG = CustomLogFactory.getLogger(MigrationRunner.class);
   private final RunContext runContext;
   private final PipelineStore pipelineStore;
   private StatusStore statusStore;
@@ -51,7 +53,7 @@ public class MigrationRunner {
   public MigrationRunner(RunContext runContext, PipelineStore pipelineStore) {
     this.runContext = runContext;
     this.pipelineStore = pipelineStore;
-    statusStore = Stores.get(StatusStore.class);
+    statusStore = Stores.from(StatusStore.class);
   }
 
   public MigrationRunner() {

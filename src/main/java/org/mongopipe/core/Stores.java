@@ -16,8 +16,9 @@
 
 package org.mongopipe.core;
 
-import lombok.CustomLog;
 import org.mongopipe.core.config.MongoPipeConfig;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 import org.mongopipe.core.runner.context.RunContextProvider;
 import org.mongopipe.core.runner.invocation.StoresLoader;
 import org.mongopipe.core.store.PipelineStore;
@@ -26,23 +27,23 @@ import org.mongopipe.core.store.PipelineStore;
  * Stores factory. The user provides the interface containing both @PipelineRun methods and CRUD methods and receives an implementation for
  * his interface allowing execution of DB stored pipelines or CRUD operations.
  */
-@CustomLog
 public class Stores {
+  private static final Log LOG = CustomLogFactory.getLogger(Stores.class);
   private static StoresLoader storesLoader = new StoresLoader();
 
   /**
    * Obtains a store implementation that you can use to call your pipelines or other crud operations.
-   * A. Without Spring (mongopipe-core):
+   * A. Without Spring (mongopipe-core): <pre>
    * Stores.from(MyRestaurant.class)
    *     .getPizzaOrdersBySize("MEDIUM");
-   *
-   * B. With Spring (mongopipe-spring):
+   * </pre>
+   * B. With Spring (mongopipe-spring): <pre>
    * @Autowired
    * MyRestaurant myRestaurant; // No need to call 'Pipelines.from'.
    * ...
    * myRestaurant.getPizzaOrdersBySize("MEDIUM", ...);
    * ```
-   *
+   * </pre>
    * NOTE: If @PipelineRun annotation is not used then specific methods will map to specific CRUD actions based on the naming conventions.
    *       If the method name can not be mapped to viable CRUD action then the method name will be matched to a database pipeline with the
    *       id equal to the "<store simple class name>.<method name>". If this also fails then an exception is thrown at startup time.
@@ -50,7 +51,7 @@ public class Stores {
    * @param <T> The actual implementation proxy.
    * @return
    */
-  public static <T> T get(Class<T> storeClass) {
+  public static <T> T from(Class<T> storeClass) {
     if (PipelineStore.class.equals(storeClass)) { // TODO: unify branches
       return (T)Pipelines.getStore();
     } else {

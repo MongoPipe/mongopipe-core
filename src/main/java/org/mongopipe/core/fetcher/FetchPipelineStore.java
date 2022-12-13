@@ -1,6 +1,5 @@
 package org.mongopipe.core.fetcher;
 
-import lombok.AllArgsConstructor;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.store.PipelineCrudStore;
 
@@ -8,10 +7,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-@AllArgsConstructor
 public class FetchPipelineStore implements FetchPipeline {
 
   private final PipelineCrudStore crudStore;
+
+  public FetchPipelineStore(PipelineCrudStore crudStore) {
+    this.crudStore = crudStore;
+  }
 
   @Override
   public List<Pipeline> getAll() {
