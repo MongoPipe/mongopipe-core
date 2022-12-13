@@ -5,7 +5,7 @@
 
     <groupId>org.mongopipe</groupId>
     <artifactId>mongopipe-core</artifactId>
-    <version>1.0</version>
+    <version>1.0-SNAPSHOT</version>
     <name>MongoPipe core library</name>
     <description>Run and manage MongoDB pipelines. Stores pipelines in the database, binds them to user own interface methods in the code.
     </description>
