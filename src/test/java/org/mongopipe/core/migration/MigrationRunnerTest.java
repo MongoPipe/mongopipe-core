@@ -16,8 +16,6 @@
 
 package org.mongopipe.core.migration;
 
-import lombok.Builder;
-import lombok.Data;
 import org.junit.Test;
 import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.Stores;
@@ -48,42 +46,18 @@ import static org.mongopipe.core.util.MigrationUtil.getChecksum;
 
 public class MigrationRunnerTest extends AbstractMongoDBTest {
 
-  @Builder
-  @Data
-  static class TestMigratablePipeline implements MigratablePipeline {
-    private final Long lastModifiedTime;
-    private final Pipeline pipeline;
-
-    public TestMigratablePipeline(Long lastModifiedTime, Pipeline pipeline) {
-      this.lastModifiedTime = lastModifiedTime;
-      this.pipeline = pipeline;
-    }
-
-    @Override
-    public Long getLastModifiedTime() {
-      return lastModifiedTime;
-    }
-
-    @Override
-    public Pipeline getPipeline() {
-      return pipeline;
-    }
-
-    @Override
-    public String getSourceName() {
-      return null;
-    }
-  }
-
   @Test
   public void testCreateAll() {
     // Given
     Pipeline pipeline = loadResourceIntoPojo("command/aggregate/pipeline.bson", Pipeline.class);
     Pipeline pipeline2 = loadResourceIntoPojo("command/aggregate/pipelinePizzasByPrice.bson", Pipeline.class);
-    Stream<MigratablePipeline> migrationUnitStream = Arrays.asList(new MigratablePipeline[]{
-        TestMigratablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline).build(),
-        TestMigratablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline2).build()
-    }).stream();
+    Stream<MigratablePipeline> migrationUnitStream =
+        Arrays.asList(
+            new MigratablePipeline[] {
+              TestMigratablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline).build(),
+              TestMigratablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline2).build()
+            })
+            .stream();
     RunContextProvider.getContext().setPipelineMigrationSource(() -> migrationUnitStream);
 
     // When
@@ -91,7 +65,7 @@ public class MigrationRunnerTest extends AbstractMongoDBTest {
 
     // Then
     assertEquals(Long.valueOf(2), Stores.getPipelineStore().count());
-    Status status = Stores.get(StatusStore.class).findById(1L).get();
+    Status status = Stores.from(StatusStore.class).findById(1L).get();
     assertNotNull(status.getUpdatedAt());
     MigrationStatus migrationStatus = status.getMigrationStatus();
     assertNotNull(migrationStatus.getFastChecksum());
@@ -100,7 +74,6 @@ public class MigrationRunnerTest extends AbstractMongoDBTest {
     assertEquals(pipeline.getId(), pipelineMigrationStatus.getPipelineId());
     assertNotNull(pipelineMigrationStatus.getChecksum());
     assertNotNull(pipelineMigrationStatus.getUpdateTime());
-
   }
 
   @Test
@@ -108,16 +81,17 @@ public class MigrationRunnerTest extends AbstractMongoDBTest {
     // Given
     Pipeline pipeline = loadResourceIntoPojo("command/aggregate/pipeline.bson", Pipeline.class);
     Pipeline pipeline2 = loadResourceIntoPojo("command/aggregate/pipelinePizzasByPrice.bson", Pipeline.class);
-    Stream<MigratablePipeline> migrationUnitStream = Arrays.asList(new MigratablePipeline[]{
-        TestMigratablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline).build(),
-        TestMigratablePipeline.builder().lastModifiedTime(2L).pipeline(pipeline2).build()
-    }).stream();
+    Stream<MigratablePipeline> migrationUnitStream =
+        Arrays.asList(
+            new MigratablePipeline[] {
+              TestMigratablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline).build(),
+              TestMigratablePipeline.builder().lastModifiedTime(2L).pipeline(pipeline2).build()
+            })
+            .stream();
     RunContextProvider.getContext().setPipelineMigrationSource(() -> migrationUnitStream);
 
-    StatusStore statusStore = Stores.get(StatusStore.class);
-    statusStore.save(Status.builder()
-        .migrationStatus(MigrationStatus.builder().fastChecksum("06CemFwL4MdybFK0166GTQ9DsXkcqMqZBmpD2B39FMU=").build())
-        .build());
+    StatusStore statusStore = Stores.from(StatusStore.class);
+    statusStore.save(Status.builder().migrationStatus(MigrationStatus.builder().fastChecksum("06CemFwL4MdybFK0166GTQ9DsXkcqMqZBmpD2B39FMU=").build()).build());
 
     // When
     new MigrationRunner().run();
@@ -136,43 +110,32 @@ public class MigrationRunnerTest extends AbstractMongoDBTest {
     // Incoming migration source.
     Pipeline pipeline2Updated = loadResourceIntoPojo("command/aggregate/pipelinePizzasByPrice.bson", Pipeline.class);
     pipeline2Updated.setDescription("pipeline2Updated");
-    Stream<MigratablePipeline> migrationUnitStream = Arrays.asList(new MigratablePipeline[]{
-        TestMigratablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline1).build(),
-        TestMigratablePipeline.builder().lastModifiedTime(2L).pipeline(pipeline2Updated).build(),
-        TestMigratablePipeline.builder().lastModifiedTime(3L).pipeline(pipeline3IsNew).build()
-    }).stream();
+    Stream<MigratablePipeline> migrationUnitStream =
+        Arrays.asList(
+            new MigratablePipeline[] {
+              TestMigratablePipeline.builder().lastModifiedTime(1L).pipeline(pipeline1).build(),
+              TestMigratablePipeline.builder().lastModifiedTime(2L).pipeline(pipeline2Updated).build(),
+              TestMigratablePipeline.builder().lastModifiedTime(3L).pipeline(pipeline3IsNew).build()
+            })
+            .stream();
     RunContextProvider.getContext().setPipelineMigrationSource(() -> migrationUnitStream);
-
 
     List<PipelineMigrationStatus> dbStatuses = new ArrayList<>();
     PipelineStore pipelineStore = Stores.getPipelineStore();
     // First db pipeline.
     LocalDateTime pipeline1UpdateTime = LocalDateTime.now();
     pipeline1 = pipelineStore.create(pipeline1);
-    dbStatuses.add(PipelineMigrationStatus.builder()
-        .pipelineId(pipeline1.getId())
-        .checksum(getChecksum(pipeline1))
-        .updateTime(pipeline1UpdateTime)
-        .build()
-    );
+    dbStatuses.add(PipelineMigrationStatus.builder().pipelineId(pipeline1.getId()).checksum(getChecksum(pipeline1)).updateTime(pipeline1UpdateTime).build());
     // Second db pipeline.
     pipelineStore.create(pipeline2WillBeUpdated);
-    dbStatuses.add(PipelineMigrationStatus.builder()
-        .pipelineId(pipeline2WillBeUpdated.getId())
-        .checksum("NON MATCHING CHECKSUM")
-        .build()
-    );
-    // No third pipeline is saved in db, because the third one will come from migration.
+    dbStatuses.add(PipelineMigrationStatus.builder().pipelineId(pipeline2WillBeUpdated.getId()).checksum("NON MATCHING CHECKSUM").build());
+    // No third pipeline is saved in db, because the third one will come from
+    // migration.
 
     // Save existing migration status.
-    StatusStore statusStore = Stores.get(StatusStore.class);
-    statusStore.save(Status.builder()
-        .migrationStatus(MigrationStatus.builder()
-            .fastChecksum("not matching")
-            .pipelineMigrationStatuses(dbStatuses)
-            .build())
-        .build());
-
+    StatusStore statusStore = Stores.from(StatusStore.class);
+    statusStore.save(
+        Status.builder().migrationStatus(MigrationStatus.builder().fastChecksum("not matching").pipelineMigrationStatuses(dbStatuses).build()).build());
 
     // When
     Pipelines.startMigration();
@@ -185,7 +148,7 @@ public class MigrationRunnerTest extends AbstractMongoDBTest {
     assertEquals("pipeline2Updated", pipelineStore.getPipeline(pipeline2WillBeUpdated.getId()).getDescription());
     assertNotEquals(pipeline2WillBeUpdated.getDescription(), pipelineStore.getPipeline(pipeline2WillBeUpdated.getId()).getDescription());
 
-    Status newStatus = Stores.get(StatusStore.class).findById(1L).get();
+    Status newStatus = Stores.from(StatusStore.class).findById(1L).get();
     assertNotNull(newStatus.getUpdatedAt());
     assertEquals("DzlfWW+ikyM+XEnMxBUsluH0L3tE/ArBzFrsc+H2oTA=", newStatus.getMigrationStatus().getFastChecksum());
     List<PipelineMigrationStatus> pipelineMigrationStatuses = newStatus.getMigrationStatus().getPipelineMigrationStatuses();
@@ -203,18 +166,18 @@ public class MigrationRunnerTest extends AbstractMongoDBTest {
     String pipeline3Checksum = getChecksum(Stores.getPipelineStore().getPipeline(pipeline3IsNew.getId()));
     assertEquals(pipeline3Checksum, pipelineMigrationStatuses.get(2).getChecksum());
     assertNotNull(pipelineMigrationStatuses.get(2).getUpdateTime());
-
   }
 
   @Test
   public void testMigrationFromFileSourceUsedWhenLaunchingProcessLocallyOrTests() {
     // Given
-    Stores.registerConfig(MongoPipeConfig.builder()
-        .uri("mongodb://localhost:" + PORT)
-        .databaseName("test")
-        .storeHistoryEnabled(true)
-        .migrationConfig(MigrationConfig.builder().pipelinesPath("pipe   lines").build()) // Test spaces in name and URL.
-        .build());
+    Stores.registerConfig(
+        MongoPipeConfig.builder()
+            .uri("mongodb://localhost:" + PORT)
+            .databaseName("test")
+            .storeHistoryEnabled(true)
+            .migrationConfig(MigrationConfig.builder().pipelinesPath("pipe   lines").build()) // Test spaces in name and URL.
+            .build());
 
     // When
     Pipelines.startMigration();
@@ -227,17 +190,18 @@ public class MigrationRunnerTest extends AbstractMongoDBTest {
   public void testMigrationFromClasspathJar() throws Exception {
     // Given
     String pipelineFolderPathInJar = "pipe lines";
-    Stores.registerConfig(MongoPipeConfig.builder()
-        .uri("mongodb://localhost:" + PORT)
-        .databaseName("test")
-        .storeHistoryEnabled(true)
-        .migrationConfig(MigrationConfig.builder().pipelinesPath(pipelineFolderPathInJar).build()) // Test spaces in name and URL.
-        .build());
+    Stores.registerConfig(
+        MongoPipeConfig.builder()
+            .uri("mongodb://localhost:" + PORT)
+            .databaseName("test")
+            .storeHistoryEnabled(true)
+            .migrationConfig(MigrationConfig.builder().pipelinesPath(pipelineFolderPathInJar).build()) // Test spaces in name and URL.
+            .build());
 
     URL url = Thread.currentThread().getContextClassLoader().getResources("jar-with-pipelines.jar").nextElement();
-    Method method = URLClassLoader.class.getDeclaredMethod("addURL", new Class[]{java.net.URL.class});
+    Method method = URLClassLoader.class.getDeclaredMethod("addURL", new Class[] {URL.class});
     method.setAccessible(true);
-    method.invoke(Thread.currentThread().getContextClassLoader(), new Object[]{url});
+    method.invoke(Thread.currentThread().getContextClassLoader(), new Object[] {url});
 
     // When
     Pipelines.startMigration();
@@ -245,5 +209,4 @@ public class MigrationRunnerTest extends AbstractMongoDBTest {
     // Then
     assertEquals(Long.valueOf(2), Stores.getPipelineStore().count());
   }
-
 }

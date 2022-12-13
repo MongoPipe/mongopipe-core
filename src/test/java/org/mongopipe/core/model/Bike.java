@@ -16,13 +16,26 @@
 
 package org.mongopipe.core.model;
 
-import lombok.Data;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;
 
-@Data
 public class Bike {
-  @BsonId
-  private ObjectId id;
+  @BsonId private ObjectId id;
   private String description;
+
+  public ObjectId getId() {
+    return id;
+  }
+
+  public void setId(ObjectId id) {
+    this.id = id;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
 }

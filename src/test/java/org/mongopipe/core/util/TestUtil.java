@@ -19,16 +19,16 @@ package org.mongopipe.core.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 import org.bson.Document;
 import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONAssert;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
-
 public class TestUtil {
   public static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
   static {
     OBJECT_MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
   }
@@ -51,31 +51,33 @@ public class TestUtil {
     }
   }
 
-
-
-
   public static <T> String convertPojoToJson(T pojo) {
-    // Using BSON library. Keep for reference, might need improvement. Adds extra type information like $date for dates.
+    // Using BSON library. Keep for reference, might need improvement. Adds
+    // extra type information like $date for dates.
     //    StringBuilder sb = new StringBuilder("[");
     //
-    //    CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
+    //    CodecRegistry pojoCodecRegistry =
+    // fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
     //        CodecRegistries.fromProviders(PojoCodecProvider.builder()
     //            .automatic(true)
     //            .build()));
     //
-    //    Encoder encoder = pojoCodecRegistry.get(result.get(0).getClass()); // improve
+    //    Encoder encoder = pojoCodecRegistry.get(result.get(0).getClass()); //
+    // improve
     //
     //    for (int i = 0; i < result.size() - 1; i++) {  // List<T> result
     //      BsonDocument unwrapped = new BsonDocument();
     //      BsonWriter writer = new BsonDocumentWriter(unwrapped);
-    //      encoder.encode(writer, result.get(i), EncoderContext.builder().build());        ;
+    //      encoder.encode(writer, result.get(i),
+    // EncoderContext.builder().build());        ;
     //      sb.append(unwrapped.toJson());
     //      sb.append(",");
     //    }
     //    if (result.size() >= 1) {
     //      BsonDocument unwrapped = new BsonDocument();
     //      BsonWriter writer = new BsonDocumentWriter(unwrapped);
-    //      encoder.encode(writer, result.get(result.size() - 1), EncoderContext.builder().build());        ;
+    //      encoder.encode(writer, result.get(result.size() - 1),
+    // EncoderContext.builder().build());        ;
     //      sb.append(unwrapped.toJson());
     //    }
     //    sb.append("]");
@@ -95,5 +97,4 @@ public class TestUtil {
       throw new RuntimeException(e);
     }
   }
-
 }

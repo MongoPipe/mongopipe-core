@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.mongopipe.core.store;
+package org.mongopipe.core.logging;
 
-public class PipelineStoreTest {
 
-  // Add tests
+import java.util.logging.Logger;
 
+public class JavaUtilLogFactory implements LogFactory {
+
+  public Log createLog(String clazz) {
+    return new JavaUtilLog(Logger.getLogger(clazz));
+  }
 }

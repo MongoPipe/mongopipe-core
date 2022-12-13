@@ -16,24 +16,20 @@
 
 package org.mongopipe.core.store;
 
+import static org.mongopipe.core.util.BsonUtil.loadResourceIntoPojo;
+
 import org.junit.Test;
 import org.mongopipe.core.Stores;
 import org.mongopipe.core.config.MongoPipeConfig;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.util.AbstractMongoDBTest;
 
-import static org.mongopipe.core.util.BsonUtil.loadResourceIntoPojo;
-
 public class PipelineHistoryStoreTest extends AbstractMongoDBTest {
 
   @Test
   public void testUpdatedAndThenDeletedPipelineIsSavedInHistory() {
     // Given
-    Stores.registerConfig(MongoPipeConfig.builder()
-        .uri("mongodb://localhost:" + PORT)
-        .databaseName("test")
-        .storeHistoryEnabled(true)
-        .build());
+    Stores.registerConfig(MongoPipeConfig.builder().uri("mongodb://localhost:" + PORT).databaseName("test").storeHistoryEnabled(true).build());
     Pipeline pipeline = loadResourceIntoPojo("runner/pipelineRun/matchingPizzasBySize.pipeline.bson", Pipeline.class);
     Stores.getPipelineStore().create(pipeline);
     String oldDescription = pipeline.getDescription();
@@ -44,9 +40,11 @@ public class PipelineHistoryStoreTest extends AbstractMongoDBTest {
     Stores.getPipelineStore().update(pipeline);
 
     // Then
-    PipelineHistoryStore historyStore = Stores.get(PipelineHistoryStore.class);
+    PipelineHistoryStore historyStore = Stores.from(PipelineHistoryStore.class);
     assertEquals(Long.valueOf(1L), historyStore.count());
-    //List<Pipeline> oldPipelines = StreamSupport.stream(historyStore.findAll().spliterator(), false).collect(Collectors.toList());
+    // List<Pipeline> oldPipelines =
+    // StreamSupport.stream(historyStore.findAll().spliterator(),
+    // false).collect(Collectors.toList());
     Pipeline oldPipeline = historyStore.findById(pipeline.getId());
     assertEquals(Long.valueOf(1), oldPipeline.getVersion());
     assertEquals(oldDescription, oldPipeline.getDescription());
@@ -58,5 +56,4 @@ public class PipelineHistoryStoreTest extends AbstractMongoDBTest {
     assertEquals(Long.valueOf(2), oldPipeline.getVersion());
     assertEquals(newDescription, oldPipeline.getDescription());
   }
-
 }

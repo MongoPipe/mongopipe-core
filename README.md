@@ -27,7 +27,7 @@ No hardcoding meaning: <br> ![logo](docs/vs.png ) <br>
 ## 3 easy steps.
 1. [Configuration](README.md#Configuration)
 2. [Create your @Store](README.md#Create-your-store)
-3. [Create BSON pipeline](README.md#Create-BSON-pipeline)
+3. [Create BSON pipeline](README.md#Create-BSON-pipeline) 
 
 ### 1. Configuration
 Maven dependency
@@ -45,6 +45,7 @@ Stores.registerConfig(MongoPipeConfig.builder()
   //.mongoClient(optionallyForCustomConnection)
   .build());
 ```
+Find more examples in samples [repo](https://github.com/MongoPipe/Examples).
 
 ### 2. Create your store
 ```java
@@ -111,7 +112,8 @@ NOTE:
    For example on pipeline running if the actual parameter value is an integer (e.g. 10) the string value: <br>
    `"x": "${paramName}",` will become an integer value:<br>
    `"x": 10,`
-4. The input source from where the pipelines are seeded (via migration) is defaulted to the classpath but can also be an external system.
+4. The input source from where the pipelines are seeded (via migration) is defaulted to the classpath but can also be an external system. <br> 
+Find more examples in samples [repo](https://github.com/MongoPipe/Examples).
 
 # Dynamic creation and running
 If you do not want to use an interface to define the pipeline run methods you can instead manually both create and run them:
@@ -182,10 +184,10 @@ Pipelines are mostly used for queries, but they can be used also for updating da
 
 Without pipelines, you can use [CRUD stores](README.md#CRUD-stores)
 
-# Support
+# Support and get in touch
 <img src="https://github.com/ionic-team/ionicons/blob/main/src/svg/settings-outline.svg" width="20"/><img src="https://github.com/ionic-team/ionicons/blob/main/src/svg/bug-outline.svg" width="20"/>
 If you have a bug or an idea, browse the open issues and create a new one. <br>
 
-<img src="https://github.com/ionic-team/ionicons/blob/main/src/svg/mail-outline.svg" width="20"/> For direct messaging find email address on the github profile of the committers.
+<img src="https://github.com/ionic-team/ionicons/blob/main/src/svg/mail-outline.svg" width="20"/> We like direct discussions. Check email address on the github profile of the committers.
 
 

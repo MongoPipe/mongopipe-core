@@ -16,21 +16,81 @@
 
 package org.mongopipe.core.migration.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class MigrationStatus {
   LocalDateTime runAt;
   String fastChecksum;  // time based
   List<PipelineMigrationStatus> pipelineMigrationStatuses;
 
+  private MigrationStatus(Builder builder) {
+    setRunAt(builder.runAt);
+    setFastChecksum(builder.fastChecksum);
+    setPipelineMigrationStatuses(builder.pipelineMigrationStatuses);
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public LocalDateTime getRunAt() {
+    return runAt;
+  }
+
+  public void setRunAt(LocalDateTime runAt) {
+    this.runAt = runAt;
+  }
+
+  public String getFastChecksum() {
+    return fastChecksum;
+  }
+
+  public void setFastChecksum(String fastChecksum) {
+    this.fastChecksum = fastChecksum;
+  }
+
+  public List<PipelineMigrationStatus> getPipelineMigrationStatuses() {
+    return pipelineMigrationStatuses;
+  }
+
+  public void setPipelineMigrationStatuses(List<PipelineMigrationStatus> pipelineMigrationStatuses) {
+    this.pipelineMigrationStatuses = pipelineMigrationStatuses;
+  }
+
+  public MigrationStatus() {
+  }
+  public MigrationStatus(LocalDateTime runAt, String fastChecksum, List<PipelineMigrationStatus> pipelineMigrationStatuses) {
+    this.runAt = runAt;
+    this.fastChecksum = fastChecksum;
+    this.pipelineMigrationStatuses = pipelineMigrationStatuses;
+  }
+
+  public static final class Builder {
+    private LocalDateTime runAt;
+    private String fastChecksum;
+    private List<PipelineMigrationStatus> pipelineMigrationStatuses;
+
+    private Builder() {
+    }
+
+    public Builder runAt(LocalDateTime val) {
+      runAt = val;
+      return this;
+    }
+
+    public Builder fastChecksum(String val) {
+      fastChecksum = val;
+      return this;
+    }
+
+    public Builder pipelineMigrationStatuses(List<PipelineMigrationStatus> val) {
+      pipelineMigrationStatuses = val;
+      return this;
+    }
+
+    public MigrationStatus build() {
+      return new MigrationStatus(this);
+    }
+  }
 }

@@ -16,9 +16,11 @@
 
 package org.mongopipe.core.migration;
 
-import lombok.CustomLog;
+import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.config.MigrationConfig;
 import org.mongopipe.core.exception.MongoPipeMigrationException;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 import org.mongopipe.core.migration.source.FileMigratablePipelineScanner;
 import org.mongopipe.core.migration.source.JarMigratablePipelineScanner;
 import org.mongopipe.core.migration.source.MigratablePipeline;
@@ -31,8 +33,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Stream;
 
-@CustomLog
 public class PipelineMigrationSourceImpl implements PipelineMigrationSource {
+  private static final Log LOG = CustomLogFactory.getLogger(PipelineMigrationSourceImpl.class);
   MigrationConfig migrationConfig;
   FileMigratablePipelineScanner fileMigratablePipelineScanner = new FileMigratablePipelineScanner();
   JarMigratablePipelineScanner jarMigratablePipelineScanner = new JarMigratablePipelineScanner();

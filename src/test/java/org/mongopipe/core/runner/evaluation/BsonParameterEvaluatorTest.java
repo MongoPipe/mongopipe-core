@@ -16,18 +16,16 @@
 
 package org.mongopipe.core.runner.evaluation;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 public class BsonParameterEvaluatorTest {
-
 
   private static List<String> test(String line, Pattern pattern) {
     System.out.println("----------");
@@ -55,7 +53,8 @@ public class BsonParameterEvaluatorTest {
     //    Pattern pattern = BsonParameterEvaluator.PARAMETER_PATTERN;
     //    Pattern pattern = Pattern.compile("(?<=\\$)\\w+");
     //    assertEquals(Arrays.asList("unu"), test("$unu", pattern));
-    //    assertEquals(Arrays.asList("unu", "trei"), test("zero $unu \ndoi $trei", pattern));
+    //    assertEquals(Arrays.asList("unu", "trei"), test("zero $unu \ndoi
+    // $trei", pattern));
 
     Pattern pattern = Pattern.compile("(?<=\\$\\{)[^\\}]+(?=\\})");
     assertEquals(Arrays.asList("unu"), test("${unu}", pattern));
@@ -66,7 +65,8 @@ public class BsonParameterEvaluatorTest {
     assertEquals(Arrays.asList("float(pizzaPrice)"), test("[{\"$match\": {\"price\": \"${float(pizzaPrice)}\"}}]", pattern));
 
     //    assertEquals(Arrays.asList("float", "pizzaPrice"),
-    //        Arrays.asList("${float(pizzaPrice)}" .split(BsonParameterEvaluator.INSIDE_PATTERN)).stream()
+    //        Arrays.asList("${float(pizzaPrice)}"
+    // .split(BsonParameterEvaluator.INSIDE_PATTERN)).stream()
     //            .filter((s) -> !s.trim().isEmpty())
     //            .collect(Collectors.toList()));
   }

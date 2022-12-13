@@ -16,19 +16,21 @@
 
 package org.mongopipe.core.runner.invocation;
 
-import lombok.CustomLog;
+import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.annotation.Param;
 import org.mongopipe.core.annotation.Store;
 import org.mongopipe.core.exception.MongoPipeConfigException;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 import org.mongopipe.core.runner.context.RunContext;
 import org.mongopipe.core.runner.context.RunContextProvider;
 import org.mongopipe.core.runner.invocation.handler.CrudInvocationHandler;
 import org.mongopipe.core.runner.invocation.handler.DefaultMethodInvocationHandler;
 import org.mongopipe.core.runner.invocation.handler.PipelineInvocationHandler;
 import org.mongopipe.core.runner.invocation.handler.ProxyInvocationHandler;
+import org.mongopipe.core.runner.invocation.handler.StoreMethodHandler;
 import org.mongopipe.core.store.CrudStore;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Proxy;
@@ -41,14 +43,14 @@ import java.util.Optional;
 import static org.mongopipe.core.util.ReflectionUtil.getClassMethodsIncludingInherited;
 import static org.mongopipe.core.util.ReflectionUtil.getSimpleMethodId;
 
-@CustomLog
 public class StoresLoader {
+  private static final Log LOG = CustomLogFactory.getLogger(StoresLoader.class);
   private final Map<Class, Object> stores = Collections.synchronizedMap(new HashMap());
   DefaultMethodInvocationHandler defaultedMethodInvocationHandler = new DefaultMethodInvocationHandler();
 
   private <T> T loadStore(Class<T> storeClass) {
     if (!storeClass.isAnnotationPresent(Store.class)) {
-      throw new MongoPipeConfigException("Missing annotation on the store");
+      throw new MongoPipeConfigException("Missing annotation on the store.");
     }
     String configId = storeClass.getAnnotation(Store.class).configurationId();
     // Get the configuration corresponding to the store.
@@ -57,21 +59,21 @@ public class StoresLoader {
       throw new MongoPipeConfigException("Missing configuration with id " + configId);
     }
     validateMethods(storeClass);
-    Map<String, InvocationHandler> methodInvocationHandlers = createInvocationHandlers(storeClass, runContext);
+    Map<String, StoreMethodHandler> methodInvocationHandlers = createInvocationHandlers(storeClass, runContext);
 
     ProxyInvocationHandler invocationHandler = new ProxyInvocationHandler(storeClass, methodInvocationHandlers);
     // https://docs.oracle.com/javase/8/docs/technotes/guides/reflection/proxy.html
     T store = (T) Proxy.newProxyInstance(
-        storeClass.getClassLoader(),
+        Thread.currentThread().getContextClassLoader(),
         new Class[]{storeClass},
         invocationHandler);
     stores.put(storeClass, store);
-    LOG.debug("Created store {}", store.getClass());
+    LOG.debug("Created store {}", storeClass.getCanonicalName());
 
     return store;
   }
 
-  private InvocationHandler createMethodHandler(Method method, Class storeClass, RunContext runContext) {
+  private StoreMethodHandler createMethodHandler(Method method, Class storeClass, RunContext runContext) {
     Optional<Method> crudMethodOptional = Arrays.asList(CrudStore.class.getDeclaredMethods()).stream()
         .filter(crudMethod -> crudMethod.getName().equals(method.getName()))
         .filter(crudMethod -> crudMethod.getParameterCount() == method.getParameterCount())
@@ -89,8 +91,8 @@ public class StoresLoader {
     
   }
 
-  private <T> Map<String, InvocationHandler> createInvocationHandlers(Class<T> storeClass, RunContext runContext) {
-    Map<String, InvocationHandler> handlers = new HashMap<>();
+  private <T> Map<String, StoreMethodHandler> createInvocationHandlers(Class<T> storeClass, RunContext runContext) {
+    Map<String, StoreMethodHandler> handlers = new HashMap<>();
     // Note that method may be from a super interface and not be declared in storeClass, so need to pass both parameters.
     getClassMethodsIncludingInherited(storeClass).stream()
         .forEach(method -> handlers.put(getSimpleMethodId(method), createMethodHandler(method, storeClass, runContext)));

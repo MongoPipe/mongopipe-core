@@ -16,14 +16,15 @@
 
 package org.mongopipe.core.runner.invocation.handler;
 
-import lombok.CustomLog;
+import org.mongopipe.core.Pipelines;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 import org.mongopipe.core.util.ReflectionUtil;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Optional;
@@ -38,14 +39,14 @@ import java.util.Optional;
  * @author Mark Paluch
  * @author Johannes Englmeier
  */
-@CustomLog
-public class DefaultMethodInvocationHandler implements InvocationHandler {
+public class DefaultMethodInvocationHandler implements StoreMethodHandler {
+  private static final Log LOG = CustomLogFactory.getLogger(DefaultMethodInvocationHandler.class);
   private final MethodHandleLookup methodHandleLookup = MethodHandleLookup.getMethodHandleLookup();
 
   // https://stackoverflow.com/questions/37812393/how-to-explicitly-invoke-default-method-from-a-dynamic-proxy
   // https://stackoverflow.com/questions/26206614/java8-dynamic-proxy-and-default-methods
   // http://netomi.github.io/2020/04/17/default-methods.html
-  public Object invoke(Object proxy, @SuppressWarnings("null") Method method, Object[] arguments) throws Throwable {
+  public Object run(Object proxy, @SuppressWarnings("null") Method method, Object[] arguments) throws Throwable {
     return getMethodHandle(method).bindTo(proxy).invokeWithArguments(arguments);
   }
 

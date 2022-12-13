@@ -16,8 +16,10 @@
 
 package org.mongopipe.core.runner.context;
 
-import lombok.CustomLog;
+import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.config.MongoPipeConfig;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,8 +31,8 @@ import java.util.Map;
  * the current active Spring profiles ids and searching for one of the ids, or actually not needed since Spring can provide bean based on
  * the current profiles active.
  */
-@CustomLog
 public class RunContextProvider {
+  private static final Log LOG = CustomLogFactory.getLogger(RunContextProvider.class);
   public static final String DEFAULT_CONTEXT_ID = "1"; // when process uses a single MongoDB database for running pipelines.
   private static final Map<String, RunContext> RUN_CONTEXT = Collections.synchronizedMap(new HashMap<>());
 

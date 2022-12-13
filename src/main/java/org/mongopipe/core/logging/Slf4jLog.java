@@ -14,37 +14,36 @@
  * limitations under the License.
  */
 
-package org.mongopipe.core.runner;
+package org.mongopipe.core.logging;
 
-import org.bson.codecs.pojo.annotations.BsonProperty;
+import org.slf4j.Logger;
 
-// TODO: test also with inner class
-public class PizzaOrders {
-  @BsonProperty("id")
-  Long id;
+public class Slf4jLog implements Log {
+  private final Logger logger;
 
-  String name;
-
-  public PizzaOrders() {}
-
-  public Long getId() {
-    return id;
+  public Slf4jLog(Logger logger) {
+    this.logger = logger;
   }
 
-  public void setId(Long id) {
-    this.id = id;
+  public void debug(String message, Object... params) {
+    logger.debug(message, params);
   }
 
-  public String getName() {
-    return name;
+  public void info(String message, Object... params) {
+    logger.info(message, params);
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void warn(String message, Object... params) {
+    logger.warn(message, params);
   }
 
-  public PizzaOrders(Long id, String name) {
-    this.id = id;
-    this.name = name;
+  public void error(String message, Object... params) {
+    logger.error(message, params);
   }
+
+  @Override
+  public void error(String message, Exception exception) {
+    logger.error(message, exception);
+  }
+
 }

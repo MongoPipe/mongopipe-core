@@ -16,6 +16,17 @@
 
 package org.mongopipe.core.runner;
 
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Aggregates.sort;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Sorts.descending;
+import static java.util.Arrays.asList;
+import static org.mongopipe.core.util.BsonUtil.loadResourceIntoDocumentList;
+import static org.mongopipe.core.util.BsonUtil.loadResourceIntoPojo;
+import static org.mongopipe.core.util.TestUtil.*;
+
+import java.util.List;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.json.JSONException;
@@ -30,23 +41,12 @@ import org.mongopipe.core.util.AbstractMongoDBTest;
 import org.mongopipe.core.util.Maps;
 import org.skyscreamer.jsonassert.JSONAssert;
 
-import java.util.List;
-
-import static com.mongodb.client.model.Aggregates.match;
-import static com.mongodb.client.model.Aggregates.sort;
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Sorts.descending;
-import static java.util.Arrays.asList;
-import static org.mongopipe.core.util.BsonUtil.loadResourceIntoDocumentList;
-import static org.mongopipe.core.util.BsonUtil.loadResourceIntoPojo;
-import static org.mongopipe.core.util.TestUtil.*;
-
 public class PipelineRunnerTest extends AbstractMongoDBTest {
 
   public void newPipelinesConfig(String storeCollection, boolean cacheEnabled) {
     // Consider this helper versus @Before because it allows configuration.
-    Stores.registerConfig(MongoPipeConfig.builder()
+    Stores.registerConfig(
+        MongoPipeConfig.builder()
             .uri("mongodb://localhost:" + PORT)
             .databaseName("test")
             .storeCollection(storeCollection)
@@ -59,30 +59,34 @@ public class PipelineRunnerTest extends AbstractMongoDBTest {
     // Given
     db.getCollection("testCollection").insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
     // Create pipeline manually. Can be also created from a pipeline.bson file.
-    Stores.getPipelineStore().create(Pipeline.builder()
-        .id("pipelineOne")
-        .pipeline("[\n" +     // Inline as JSON but will be converted to BSON in the builder.
-            "  {\n" +
-            "    $match: {\n" +
-            "      size: \"${pizzaSize}\"\n" +
-            "    }\n" +
-            "  },\n" +
-            "  {\n" +
-            "    $group: {\n" +
-            "      _id: \"$name\",\n" +
-            "      totalQuantity: {\n" +
-            "        $sum: \"$quantity\"\n" +
-            "      }\n" +
-            "    }\n" +
-            "  }\n" +
-            "]")
-        .collection("testCollection")
-        .build());
+    Stores.getPipelineStore()
+        .create(
+            Pipeline.builder()
+                .id("pipelineOne")
+                .pipeline(
+                    "[\n"
+                        + // Inline as JSON but will be converted to BSON in the
+                        // builder.
+                        "  {\n"
+                        + "    $match: {\n"
+                        + "      size: \"${pizzaSize}\"\n"
+                        + "    }\n"
+                        + "  },\n"
+                        + "  {\n"
+                        + "    $group: {\n"
+                        + "      _id: \"$name\",\n"
+                        + "      totalQuantity: {\n"
+                        + "        $sum: \"$quantity\"\n"
+                        + "      }\n"
+                        + "    }\n"
+                        + "  }\n"
+                        + "]")
+                .collection("testCollection")
+                .build());
 
     // When
     // Without Spring, you need first to manually get the pipeline store.
-    List<Document> reports = Stores.get(MyRestaurant.class)
-        .runMyFirstPipeline("medium");
+    List<Document> reports = Stores.from(MyRestaurant.class).runMyFirstPipeline("medium");
 
     // Then
     String expected = "[{\"_id\":\"Pepperoni\",\"totalQuantity\":20},{\"_id\":\"Cheese\",\"totalQuantity\":50},{\"_id\":\"Vegan\",\"totalQuantity\":10}]";
@@ -138,14 +142,13 @@ public class PipelineRunnerTest extends AbstractMongoDBTest {
   @Test
   public void testWithPojoClassForResultAndWithoutPipelineRunAnnotation() throws JSONException {
     // Given
-    Pipeline pipelineRun = loadResourceIntoPojo("runner/pipelineRun/matchingPizzasBySizeWhenMissingAnnotation.pipeline.bson",
-        Pipeline.class);
+    Pipeline pipelineRun = loadResourceIntoPojo("runner/pipelineRun/matchingPizzasBySizeWhenMissingAnnotation.pipeline.bson", Pipeline.class);
     db.getCollection(pipelineRun.getCollection()).insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
 
     Stores.getPipelineStore().create(pipelineRun);
 
     // When
-    List<Pizza> pizzas = Stores.get(MyRestaurant.class).matchingPizzasBySize("medium");
+    List<Pizza> pizzas = Stores.from(MyRestaurant.class).matchingPizzasBySize("medium");
 
     // Then
     assertEquals(3, pizzas.size());
@@ -157,23 +160,18 @@ public class PipelineRunnerTest extends AbstractMongoDBTest {
   public void testCreationOfPipelineDynamicallyViaMongoApi() {
     // Given
     db.getCollection("testCollection").insertMany(loadResourceIntoDocumentList("runner/pipelineRun/data.bson"));
-    Bson matchStage = match(and(eq("size", "${size}"), eq("available", "${available}")));   // Static imports from com.mongodb.client.model.Aggregates
+    Bson matchStage = match(and(eq("size", "${size}"), eq("available", "${available}"))); // Static imports from
+    // com.mongodb.client.model.Aggregates
     Bson sortByCountStage = sort(descending("price"));
-    Stores.getPipelineStore().create(Pipeline.builder()
-        .id("dynamicPipeline")
-        .pipeline(asList(matchStage, sortByCountStage))
-        .collection("testCollection")
-        .build());
+    Stores.getPipelineStore()
+        .create(Pipeline.builder().id("dynamicPipeline").pipeline(asList(matchStage, sortByCountStage)).collection("testCollection").build());
     PipelineRunner pipelineRunner = Pipelines.getRunner();
 
     // When
-    List<Pizza> pizzas = pipelineRunner.runAndList("dynamicPipeline", Pizza.class,
-        Maps.of("size", "medium", "available", true));
+    List<Pizza> pizzas = pipelineRunner.runAndList("dynamicPipeline", Pizza.class, Maps.of("size", "medium", "available", true));
 
     // Then
     assertEquals(3, pizzas.size());
     assertEquals(Float.valueOf(20), pizzas.get(0).getPrice());
   }
-
-
 }

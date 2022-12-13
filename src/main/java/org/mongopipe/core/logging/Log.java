@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.mongopipe.core.store;
+package org.mongopipe.core.logging;
 
-public class PipelineStoreTest {
-
-  // Add tests
-
+public interface Log {
+  void debug(String message, Object... params);
+  void info(String message, Object... params);
+  void warn(String message, Object... params);
+  void error(String message, Object... params);
+  void error(String message, Exception exception);
 }

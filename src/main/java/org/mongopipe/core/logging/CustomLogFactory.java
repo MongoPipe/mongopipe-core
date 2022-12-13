@@ -16,12 +16,34 @@
 
 package org.mongopipe.core.logging;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class CustomLogFactory {
+  private static LogFactory logFactory;
 
-  public static Logger getLogger(String clazz) {
-    return LoggerFactory.getLogger(clazz);
+  public static Log getLogger(String clazz) {
+    if (logFactory == null) {
+      if (classExists("org.slf4j.LoggerFactory")) {
+        logFactory = new Slf4jLogFactory();
+      } else if (classExists("org.apache.logging.log4j.Logger")) {
+        logFactory = new Log4jLogFactory();
+      } else {
+        logFactory = new JavaUtilLogFactory();
+      }
+    }
+    return logFactory.createLog(clazz);
   }
+
+  public static Log getLogger(Class clazz) {
+    return getLogger(clazz.getName());
+  }
+
+  private static boolean classExists(String clazz) {
+    try {
+      Class.forName(clazz);
+    } catch (Exception e) {
+      return false;
+    }
+    return true;
+  }
+
+
 }

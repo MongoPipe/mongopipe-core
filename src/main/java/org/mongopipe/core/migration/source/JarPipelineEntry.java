@@ -16,15 +16,43 @@
 
 package org.mongopipe.core.migration.source;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-@Data
-@RequiredArgsConstructor
-@ToString
 public class JarPipelineEntry {
-  private final String path;
-  private final Long lastModifiedTime;
-  private final String jarPath;
+  private String path;
+  private Long lastModifiedTime;
+  private String jarPath;
+
+  public JarPipelineEntry(String path, Long lastModifiedTime, String jarPath) {
+    this.path = path;
+    this.lastModifiedTime = lastModifiedTime;
+    this.jarPath = jarPath;
+  }
+
+  public String getPath() {
+    return path;
+  }
+
+  public void setPath(String path) {
+    this.path = path;
+  }
+
+  public Long getLastModifiedTime() {
+    return lastModifiedTime;
+  }
+
+  public void setLastModifiedTime(Long lastModifiedTime) {
+    this.lastModifiedTime = lastModifiedTime;
+  }
+
+  public String getJarPath() {
+    return jarPath;
+  }
+
+  public void setJarPath(String jarPath) {
+    this.jarPath = jarPath;
+  }
+
+  @Override
+  public java.lang.String toString() {
+    return "JarPipelineEntry(path=" + this.getPath() + ", lastModifiedTime=" + this.getLastModifiedTime() + ", jarPath=" + this.getJarPath() + ")";
+  }
 }

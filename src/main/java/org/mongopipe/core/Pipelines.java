@@ -16,8 +16,9 @@
 
 package org.mongopipe.core;
 
-import lombok.CustomLog;
 import org.mongopipe.core.exception.MongoPipeConfigException;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 import org.mongopipe.core.migration.MigrationRunner;
 import org.mongopipe.core.runner.PipelineRunner;
 import org.mongopipe.core.runner.context.RunContext;
@@ -32,8 +33,8 @@ import static org.mongopipe.core.runner.context.RunContextProvider.DEFAULT_CONTE
 /**
  * Factories for pipelines.
  */
-@CustomLog
 public class Pipelines {
+  private static final Log LOG = CustomLogFactory.getLogger(Pipelines.class);
   private static Map<String, PipelineStore> STORE_MAP = new HashMap<>();
   private static Map<String, PipelineRunner> RUNNER_MAP = new HashMap<>();
 

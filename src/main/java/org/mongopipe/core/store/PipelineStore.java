@@ -16,7 +16,7 @@
 
 package org.mongopipe.core.store;
 
-import lombok.CustomLog;
+import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.Stores;
 import org.mongopipe.core.config.MongoPipeConfig;
 import org.mongopipe.core.exception.MongoPipeConfigException;
@@ -24,6 +24,8 @@ import org.mongopipe.core.exception.PipelineNotFoundException;
 import org.mongopipe.core.fetcher.FetchCachedPipeline;
 import org.mongopipe.core.fetcher.FetchPipeline;
 import org.mongopipe.core.fetcher.FetchPipelineStore;
+import org.mongopipe.core.logging.CustomLogFactory;
+import org.mongopipe.core.logging.Log;
 import org.mongopipe.core.model.Pipeline;
 import org.mongopipe.core.notifier.GenericChangeNotifier;
 import org.mongopipe.core.runner.context.RunContext;
@@ -40,8 +42,8 @@ import static org.mongopipe.core.util.BsonUtil.toBsonList;
  * disable cache.
  *
  */
-@CustomLog
 public class PipelineStore {
+  private static final Log LOG = CustomLogFactory.getLogger(PipelineStore.class);
   private MongoPipeConfig mongoPipeConfig;
   private final FetchPipeline fetchPipeline;
   private GenericChangeNotifier changeNotifier = new GenericChangeNotifier();
@@ -51,8 +53,8 @@ public class PipelineStore {
 
   public PipelineStore(RunContext runContext) {
     mongoPipeConfig = runContext.getMongoPipeConfig();
-    crudStore = Stores.get(PipelineCrudStore.class);
-    historyStore = Stores.get(PipelineHistoryStore.class);
+    crudStore = Stores.from(PipelineCrudStore.class);
+    historyStore = Stores.from(PipelineHistoryStore.class);
 
     //check to update or not cache
     FetchPipelineStore cachePipelineStore = new FetchPipelineStore(crudStore);
@@ -143,5 +145,9 @@ public class PipelineStore {
 
   public Long count() {
     return crudStore.count();
+  }
+
+  public Iterable<Pipeline> findAll() {
+    return crudStore.findAll();
   }
 }
