@@ -97,8 +97,9 @@ Store the above <pipeline_name.bson> file in your **source code**, under folder 
 On migration (at process startup time) all the pipelines from that folder will be created/updated in the database collection
 `pipeline_store`. <br>
 If you are not using Spring and mongopipe-spring dependency you need to manually call the migration on process start like this:
-`Pipelines.startMigration()` and all the pipelines will be loaded into the database. <br>
-![logo](docs/pipeline_store.png ) <br>
+`Pipelines.startMigration()` and all the pipelines will be loaded into the database.
+
+![logo](docs/pipeline_store.png) <br>
 
 NOTE:
 1. The pipelines can be also **manually** created using the PipelineStore API(`Pipelines.getStore()`).
