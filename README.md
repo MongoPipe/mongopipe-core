@@ -28,9 +28,9 @@ No hardcoding meaning: <br> ![logo](docs/vs.png ) <br>
 Documentation hosted at [https://www.mongopipe.org/](https://www.mongopipe.org/). 
 
 # 3 easy steps.
-1. [Configuration](README.md#Configuration)
-2. [Create your @Store](README.md#Create-your-store)
-3. [Create BSON pipeline](README.md#Create-BSON-pipeline)
+1. [Configuration](#configuration)
+2. [Create your @Store](#create-your-store)
+3. [Create BSON pipeline](#create-bson-pipeline)
 
 ## 1. Configuration
 Maven dependency
@@ -72,13 +72,13 @@ Stores.from(MyRestaurant.class)
 ```
 **NOTE**:
 1. For **generic running** usages like the ones in the Intro section, meaning no need for pipeline stores(@Store annotated), you can use the
-   `Pipelines.getRunner().run` method.  More here: [Generic creation and running](README.md#Dynamic-creation-and-running) <br>
+   `Pipelines.getRunner().run` method.  More here: [Generic creation and running](#Dynamic-creation-and-running) <br>
    You only need the pipeline document to exist in the database collection (*pipeline_store*) or to be provided inline.
 2. The parameters actual values provided are expected to be in the same order as in the pipeline template. For clearer identification
    annotate using `@Param` the method parameter and provide the template parameter name: <br>
    `List<Pizza> matchingPizzasBySize(@Param("pizzaSize") String pizzaSize)`.
 3. As secondary functionality, it supports generation of a CRUD operation just from the method naming similar with Spring Data.
-   See [CRUD stores](README.md#CRUD-stores)
+   See [CRUD stores](#crud-stores)
 
 ## 3. Create BSON pipeline
 Create resource file `myFirstPipeline.bson` that will be automatically inserted(via migration process) in the database collection
@@ -112,7 +112,7 @@ NOTE:
 1. The pipelines can be also **manually** created using the PipelineStore API(`Pipelines.getStore()`).   
 2. The file above although static it is input into the migration utility at process startup and thus seeded in the database. It can then be
    updated at runtime via the PipelineStore API or the file can be manually modified and on process startup it will be
-   automatically updated in the database by the migration process. More on [Migration](README.md#Migration).
+   automatically updated in the database by the migration process. More on [Migration](#migration).
 3. **The parameters form is `"${paramName}"`**. <br>
    Parameters inside the pipeline template **must** be strings (e.g. `"..": "${paramName}"`) in order to be a valid BSON.
    On pipeline run the **actual parameters values can be of any type including complex types: lists, maps, pojos** as long as it can be
@@ -162,7 +162,7 @@ It will detect all the pipelines that have changed or are new by comparing check
 the database. Then it will take appropriate action (create or update) on each pipeline. <br>
 The prior value of an updated pipeline will be saved in the `pipeline_store_history` collection for backup purposes. This is configurable.
 
-# CRUD stores
+# [CRUD stores]
 A @Store annotated interface can support both @PipelineRun methods and also CRUD methods by naming convention.<br>
 The method signature must match one of the methods from `org.mongopipe.core.store.CrudStore`. E.g.:
 ```java
@@ -188,12 +188,16 @@ NOTE:
 Find more examples in samples [repo](https://github.com/MongoPipe/Examples).
 
 # Update operations
-Pipelines are mostly used for queries, but they can be used also for updating data:
+1. Without pipelines, you can use [CRUD stores](#crud-stores)
+2. Pipelines are mostly used for queries, but they can be used also for updating data:
 1. Using [update stages](https://www.mongodb.com/docs/manual/tutorial/update-documents-with-aggregation-pipeline/) like for example the `$replaceRoot`.
 2. Using dedicated commands like for example [findOneAndUpdate](findOneAndUpdate()) which can be run by setting `Pipeline#commandOptions`.
    The findOneAndUpdate allows also to insert the document if it does not exist.
 
-Without pipelines, you can use [CRUD stores](README.md#CRUD-stores)
+
+
+# TODO
+- Use JavaDoc links in the documentation instead of class names only.
 
 # Support and get in touch
 <img src="https://github.com/ionic-team/ionicons/blob/main/src/svg/settings-outline.svg" width="20"/><img src="https://github.com/ionic-team/ionicons/blob/main/src/svg/bug-outline.svg" width="20"/>
