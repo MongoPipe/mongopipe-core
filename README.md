@@ -25,7 +25,7 @@ MongoDB pipelines can be used for both **querying and updating** the data.<br>
 No hardcoding meaning: <br> ![logo](docs/vs.png ) <br>
 
 # Documentation
-Documentation hosted at [https://www.mongopipe.org/](https://www.mongopipe.org/). 
+Documentation is hosted at [https://www.mongopipe.org/](https://www.mongopipe.org/). 
 
 # 3 easy steps.
 1. [Configuration](#1-configuration)
