@@ -28,11 +28,12 @@ No hardcoding meaning: <br> ![logo](docs/vs.png ) <br>
 Documentation hosted at [https://www.mongopipe.org/](https://www.mongopipe.org/). 
 
 # 3 easy steps.
-1. [Configuration](#configuration)
-2. [Create your @Store](#create-your-store)
-3. [Create BSON pipeline](#create-bson-pipeline)
+1. [Configuration](#1.-configuration)
+2. [Create your @Store](#2.-create-your-store)
+3. [Create BSON pipeline](#3.-create-bson-pipeline)
 
 ## 1. Configuration
+
 Maven dependency
 ```xml
 <dependency>
@@ -162,7 +163,7 @@ It will detect all the pipelines that have changed or are new by comparing check
 the database. Then it will take appropriate action (create or update) on each pipeline. <br>
 The prior value of an updated pipeline will be saved in the `pipeline_store_history` collection for backup purposes. This is configurable.
 
-# [CRUD stores]
+# CRUD stores
 A @Store annotated interface can support both @PipelineRun methods and also CRUD methods by naming convention.<br>
 The method signature must match one of the methods from `org.mongopipe.core.store.CrudStore`. E.g.:
 ```java
