@@ -99,14 +99,13 @@ Create resource file `myFirstPipeline.bson` that will be automatically inserted(
 }
 ```
 For a list of all possible fields that you can use check the class 
-[Pipeline](https://github.com/MongoPipe/mongopipe-core/blob/main/src/main/java/org/mongopipe/core/model/Pipeline.java) javadoc.
-Store the above bson file in your **source code**, under `src/main/resources/pipelines` (configurable (step 1) via
-`MongoPipeConfig#migrationConfig#pipelinesPath`).<br>
-On migration (at process startup time) all the pipelines from that folder will be created/updated in the database collection
-`pipeline_store`. <br>
-If you are not using Spring and mongopipe-spring dependency you need to manually call the migration using `Pipelines.startMigration()` and
-all the pipelines will be loaded into the database.
-
+[Pipeline](https://github.com/MongoPipe/mongopipe-core/blob/main/src/main/java/org/mongopipe/core/model/Pipeline.java) javadoc. <br>
+Store the above bson file in your **source code**, under `src/main/resources/pipelines` (configurable in step 1 
+[configuration](#1-configuration) via `MongoPipeConfig#migrationConfig#pipelinesPath`).<br>
+On migration (at process startup time) all the pipelines from that folder will be created(when new) or updated in the database collection
+`pipeline_store`. Any future changes to the pipeline files will be detected and reflected in the database during migration run check. <br> 
+If you are not using Spring and mongopipe-spring dependency you need to manually call the migration at process startup using `Pipelines.startMigration()`.
+Pipeline store collection:
 ![db store](/docs/pipeline_store.png ) <br>
 
 NOTE:
@@ -169,11 +168,10 @@ The method signature must match one of the methods from `org.mongopipe.core.stor
 ```java
 @Store(
     items = {
-        @Item(type = Pizza.class, collection = "${myConfig.pizzaCollection}")
+        @Item(type = Pizza.class, collection = "pizzas")
     }
 )
 public interface PizzaStore {
-
   Pizza save(Pizza pizza);
   Pizza findById(String id);
   Iterable<Pizza> findAll();
@@ -182,7 +180,7 @@ public interface PizzaStore {
 ```
 NOTE:
 1. The store(via the @Store annotation) decides where to put the items and not vice versa meaning an item type class is storage
-   agnostic. Thus, the `@Store#items` field acts as a database mapping definition.
+   agnostic. Thus, the annotation `@Store#items` field acts as a database mapping definition.
 2. This feature is secondary, main feature is to manage and run pipelines.
 
 # More examples
