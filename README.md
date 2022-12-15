@@ -39,7 +39,7 @@ Maven dependency
 <dependency>
   <groupId>org.mongopipe</groupId>
   <artifactId>mongopipe-core</artifactId>
-  <version>X.Y.Z</version> <!-- Replace X.Y.Z below with the latest release number. -->
+  <version>X.Y.Z</version> <!-- Get latest from Maven Central or https://mvnrepository.com/artifact/org.mongopipe/mongopipe-core -->
 </dependency>
 ```
 ```java
