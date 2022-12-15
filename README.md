@@ -121,8 +121,6 @@ NOTE:
    For example on pipeline running if the actual parameter value is an integer (e.g. 10) the string value: <br>
    `"x": "${paramName}",` will become an integer value:<br>
    `"x": 10,`
-4. The input source from where the pipelines are seeded (via migration) is defaulted to the classpath but can also be an external system. <br>
-   Find more examples in samples [repo](https://github.com/MongoPipe/Examples).
 
 # Dynamic creation and running
 Sometimes instead of using an interface to define the pipeline run methods you can instead manually both create and run a pipeline:
