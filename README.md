@@ -28,9 +28,9 @@ No hardcoding meaning: <br> ![logo](docs/vs.png ) <br>
 Documentation hosted at [https://www.mongopipe.org/](https://www.mongopipe.org/). 
 
 # 3 easy steps.
-1. [Configuration](#1.-configuration)
-2. [Create your @Store](#2.-create-your-store)
-3. [Create BSON pipeline](#3.-create-bson-pipeline)
+1. [Configuration](#1-configuration)
+2. [Create your @Store](#2-create-your-store)
+3. [Create BSON pipeline](#3-create-bson-pipeline)
 
 ## 1. Configuration
 
@@ -194,8 +194,6 @@ Find more examples in samples [repo](https://github.com/MongoPipe/Examples).
 1. Using [update stages](https://www.mongodb.com/docs/manual/tutorial/update-documents-with-aggregation-pipeline/) like for example the `$replaceRoot`.
 2. Using dedicated commands like for example [findOneAndUpdate](findOneAndUpdate()) which can be run by setting `Pipeline#commandOptions`.
    The findOneAndUpdate allows also to insert the document if it does not exist.
-
-
 
 # TODO
 - Use JavaDoc links in the documentation instead of class names only.
