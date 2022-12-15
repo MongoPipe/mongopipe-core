@@ -55,8 +55,8 @@ Find more examples in samples [repo](https://github.com/MongoPipe/Examples).
 ```java
 @Store
 public interface MyRestaurant {
-  @PipelineRun("matchingPizzasBySize") // the db pipeline id, if missing is defaulted to method name. 
-  Stream<Pizza> getPizzasBySize(String pizzaSize);      
+  @PipelineRun("matchingPizzas") // the db pipeline id, if missing is defaulted to method name. 
+  Stream<Pizza> getMatchingPizzas(String pizzaSize);      
 }    
 
 // Running. 
@@ -64,11 +64,11 @@ public interface MyRestaurant {
 @Autowired
 MyRestaurant myRestaurant;
 ...
-myRestaurant.getPizzasBySize("MEDIUM", ...);
+myRestaurant.getMatchingPizzas("MEDIUM", ...);
 
 // B. Without Spring:
 Stores.from(MyRestaurant.class)
-  .getPizzasBySize("MEDIUM");
+  .getMatchingPizzas("MEDIUM");
 
 ```
 **NOTE**:
@@ -77,7 +77,7 @@ Stores.from(MyRestaurant.class)
    You only need the pipeline document to exist in the database collection (*pipeline_store*) or to be provided inline.
 2. The parameters actual values provided are expected to be in the same order as in the pipeline template. For clearer identification
    annotate using `@Param` the method parameter and provide the template parameter name: <br>
-   `List<Pizza> matchingPizzasBySize(@Param("pizzaSize") String pizzaSize)`.
+   `List<Pizza> getMatchingPizzas(@Param("pizzaSize") String pizzaSize)`.
 3. As secondary functionality, it supports generation of a CRUD operation just from the method naming similar with Spring Data.
    See [CRUD stores](#crud-stores)
 
@@ -86,8 +86,8 @@ Create resource file `myFirstPipeline.bson` that will be automatically inserted(
 `pipeline_store`:
 ```bson
 {
- "id": "matchingPizzasBySize",
- "collection": "pizzaCollection",
+ "id": "matchingPizzas",
+ "collection": "pizzas",
  "pipeline": [
    {
       $match: { size: "${pizzaSize}" }
@@ -146,7 +146,7 @@ If you do not want to use an interface to define the pipeline run methods you ca
     
     // Run
     PipelineRunner pipelineRunner = Pipelines.getRunner();
-    List<Pizza> pizzas = pipelineRunner.run("myPipeline", Pizza.class, Maps.of("size", "medium", "available", true)) // Returns a stream
+    List<Pizza> pizzas = pipelineRunner.run("matchingPizzas", Pizza.class, Maps.of("size", "medium", "available", true)) // Returns a stream
         .collect(Collectors.toList());
 ```
 NOTE:
@@ -171,7 +171,7 @@ The method signature must match one of the methods from `org.mongopipe.core.stor
         @Item(type = Pizza.class, collection = "pizzas")
     }
 )
-public interface PizzaStore {
+public interface PizzaRestaurant {
   Pizza save(Pizza pizza);
   Pizza findById(String id);
   Iterable<Pizza> findAll();
