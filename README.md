@@ -151,7 +151,7 @@ Sometimes instead of using an interface to define the pipeline run methods you c
         .collect(Collectors.toList());
 ```
 NOTE:
-1. Store obtained via `Stores.getPipelineStore()` can be used also to create, update and delete pipelines.
+1. Store obtained via `Pipelines.getStore()` can be used also to create, update and delete pipelines.
 2. You can also parameterize an entire pipeline stage/subparts of a stage and send an object, array, pojo or bson type as an actual parameter. For example
    when sorting on multiple fields the `{field1: 1, field2: -1}` can be provided as a Java map or pojo class
 
