@@ -133,12 +133,12 @@ Sometimes instead of using an interface to define the pipeline run methods you c
     // 1. From a String:
     String bsonStringPipeline = "{ \"id\": \"matchingPizzas\", \"collection\": \"pizzas\", \"pipeline\": [ ...";
     Pipeline pipeline = BsonUtil.toPojo(bsonString, Pipeline.class);
-    pipelineStore.createPipeline(pipeline);
+    pipelineStore.create(pipeline);
     
     // 2. Dynamically using BSON API, static imports are from Mongo driver API class: com.mongodb.client.model.Aggregates / Filters.        
     Bson matchStage = match(and(eq("size", "$size"), eq("available", "$available")));
     Bson sortByName = sort(descending("name"));
-    pipelineStore.createPipeline(Pipeline.builder()        
+    pipelineStore.create(Pipeline.builder()        
         .id("matchingPizzas")
         .pipeline(asList(matchStage, sortByName))
         //.pipelineAsString("...") can be also provided as a string
