@@ -124,24 +124,24 @@ NOTE:
    Find more examples in samples [repo](https://github.com/MongoPipe/Examples).
 
 # Dynamic creation and running
-If you do not want to use an interface to define the pipeline run methods you can instead manually both create and run them:
+Sometimes instead of using an interface to define the pipeline run methods you can instead manually both create and run a pipeline:
 ```java
     // Use PipelineStore for any CRUD operations on pipelines. 
     PipelineStore pipelineStore = Stores.getPipelineStore();
 
     // 1. From a String:
-    String bsonStringPipeline = "{ \"id\": \"myPipeline\", \"collection\": \"pizzaCollection\", \"pipeline\": [ ...";
+    String bsonStringPipeline = "{ \"id\": \"matchingPizzas\", \"collection\": \"pizzas\", \"pipeline\": [ ...";
     Pipeline pipeline = BsonUtil.toPojo(bsonString, Pipeline.class);
     pipelineStore.createPipeline(pipeline);
     
     // 2. Dynamically using BSON API, static imports are from Mongo driver API class: com.mongodb.client.model.Aggregates / Filters.        
     Bson matchStage = match(and(eq("size", "$size"), eq("available", "$available")));
-    Bson sortByCountStage = sort(descending("price"));
+    Bson sortByName = sort(descending("name"));
     pipelineStore.createPipeline(Pipeline.builder()        
-        .id("myPipeline")
-        .pipeline(asList(matchStage, sortByCountStage))
+        .id("matchingPizzas")
+        .pipeline(asList(matchStage, sortByName))
         //.pipelineAsString("...") can be also provided as a string
-        .collection("testCollection")
+        .collection("pizzas")
         .build());
     
     // Run
@@ -187,10 +187,10 @@ NOTE:
 Find more examples in samples [repo](https://github.com/MongoPipe/Examples).
 
 # Update operations
+For performing data updates: 
 1. Without pipelines, you can use [CRUD stores](#crud-stores)
-2. Pipelines are mostly used for queries, but they can be used also for updating data:
-1. Using [update stages](https://www.mongodb.com/docs/manual/tutorial/update-documents-with-aggregation-pipeline/) like for example the `$replaceRoot`.
-2. Using dedicated commands like for example [findOneAndUpdate](findOneAndUpdate()) which can be run by setting `Pipeline#commandOptions`.
+2. With pipelines, using [update stages](https://www.mongodb.com/docs/manual/tutorial/update-documents-with-aggregation-pipeline/) like for example the `$replaceRoot`.
+3. With pipelines, using dedicated commands like for example [findOneAndUpdate](findOneAndUpdate()) which can be run by setting `Pipeline#commandOptions`.
    The findOneAndUpdate allows also to insert the document if it does not exist.
 
 # TODO
