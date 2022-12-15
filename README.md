@@ -128,7 +128,7 @@ NOTE:
 Sometimes instead of using an interface to define the pipeline run methods you can instead manually both create and run a pipeline:
 ```java
     // Use PipelineStore for any CRUD operations on pipelines. 
-    PipelineStore pipelineStore = Stores.getPipelineStore();
+    PipelineStore pipelineStore = Pipelines.getStore();
 
     // 1. From a String:
     String bsonStringPipeline = "{ \"id\": \"matchingPizzas\", \"collection\": \"pizzas\", \"pipeline\": [ ...";
