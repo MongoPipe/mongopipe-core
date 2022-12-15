@@ -29,12 +29,42 @@ import static org.mongopipe.core.util.BsonUtil.toBsonList;
 
 /**
  * Stores both the pipeline and the running context (target collection, type of collection method and params).
- * NOTE: It does not store the actual pipeline variables values. Those are provided when the pipeline is actually executed:
+ * Pipeline stages <a href="https://www.mongodb.com/docs/manual/reference/operator/aggregation-pipeline/">documentation</a>.
+ *
+ * NOTES:
+ * It does not store the actual pipeline variables values. Those are provided when the pipeline is actually executed:
  *  <code>pizzaStore.getPizzas("Medium")</code> or <code>pipelineRunner.run("pizzaPipelineId", "Medium")</code>
- * You can create a Pipeline multiple ways:
- *   - pipelineStore.create
- *   - via classpath files
  * No return type of the pipeline is provided since that would tie to implementation and restrict refactoring.
+ *
+ * User provided variables/parameters are String values similar with <code>{... field: "${paramName}", ...}</code> but will get replaced
+ * with the actual type (object, array, pojo or bson type) of the value provided by the user when the pipeline is run.
+ *
+ * You can create a Pipeline multiple ways:
+ *    1. Manually using <pre>Stores.getPipelineStore().create</pre>
+ *    2. Via classpath files (created/updated automatically by Migration flow). See documentation site.
+ * Depending on your use case both ways are helpful.
+ *
+ * Manual creation:
+ * <pre>
+ *     // Use PipelineStore for any CRUD operations on pipelines.
+ *     PipelineStore pipelineStore = Stores.getPipelineStore();
+ *
+ *     // 1. From a String:
+ *     String bsonStringPipeline = "{ \"id\": \"myPipeline\", \"collection\": \"pizzaCollection\", \"pipeline\": [ ...";
+ *     Pipeline pipeline = BsonUtil.toPojo(bsonString, Pipeline.class);
+ *     pipelineStore.createPipeline(pipeline);
+ *
+ *     // 2. Dynamically using BSON API, static imports are from Mongo driver API class: com.mongodb.client.model.Aggregates / Filters.
+ *     Bson matchStage = match(and(eq("size", "$size"), eq("available", "$available")));
+ *     Bson sortByCountStage = sort(descending("price"));
+ *     pipelineStore.createPipeline(Pipeline.builder()
+ *         .id("myPipeline")
+ *         .pipeline(asList(matchStage, sortByCountStage))
+ *         //.pipelineAsString("...") can be also provided as a string
+ *         .collection("testCollection")
+ *         .build());
+ * </pre>
+ *
  */
 public class Pipeline extends MongoEntity {
   /**
@@ -45,6 +75,9 @@ public class Pipeline extends MongoEntity {
   LocalDateTime updatedAt;
 
   /**
+   * Stores all the pipeline stages as a BSON array.
+
+   * Pipeline stages <a href="https://www.mongodb.com/docs/manual/reference/operator/aggregation-pipeline/">documentation</a>.
    * The raw/template BSON pipeline that is run by MongoDB. This contains pipeline variables in the form of ${variableName}. The values for
    * those variables are provided when the pipeline is run.
    * You can also provide it as a JSON string when calling the builder 'jsonPipeline' method but it will eventually be saved as a bson list.
@@ -52,6 +85,10 @@ public class Pipeline extends MongoEntity {
   List<BsonDocument> pipeline;
 
   /**
+   * Stores all the pipeline stages as a String. This is by default a automatically generated copy of the Pipeline#pipeline field but if it
+   * is provided by the user then it will take precedence.
+   * The main purpose of it is to quickly be able to send the pipeline as a String from
+   * Pipeline stages <a href="https://www.mongodb.com/docs/manual/reference/operator/aggregation-pipeline/">documentation</a>.
    * Optional string pipeline content. Has priority over bson {@link Pipeline#pipeline} when the pipeline is executed.
    * Used mainly because it is simpler to edit directly in the DB and many users will have easier direct access to DB than API.
    * It is automatically generated from the bson list on each create/update via the API.
