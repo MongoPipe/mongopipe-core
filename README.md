@@ -92,6 +92,10 @@ Create resource file `myFirstPipeline.bson` that will be automatically inserted(
   ]
 }
 ```
+![db store](/docs/pipeline_store.png ) <br>
+<br> ![logo](docs/vs.png ) <br>
+<br> ![pipeline store](docs/pipeline_store.png ) <br>
+
 Store the above <pipeline_name.bson> file in your **source code**, under folder `"src/main/resources/pipelines"` (configurable (step 1) via
 `MongoPipeConfig#migrationConfig#pipelinesPath`).<br>
 On migration (at process startup time) all the pipelines from that folder will be created/updated in the database collection
