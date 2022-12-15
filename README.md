@@ -73,7 +73,7 @@ Stores.from(MyRestaurant.class)
 ```
 **NOTE**:
 1. For **generic running** usages like the ones in the Intro section, meaning no need for pipeline stores(@Store annotated), you can use the
-   `Pipelines.getRunner().run` method.  More here: [Generic creation and running](#Dynamic-creation-and-running) <br>
+   `Pipelines.getRunner().run` method.  More here: [Generic creation and running](#dynamic-creation-and-running) <br>
    You only need the pipeline document to exist in the database collection (*pipeline_store*) or to be provided inline.
 2. The parameters actual values provided are expected to be in the same order as in the pipeline template. For clearer identification
    annotate using `@Param` the method parameter and provide the template parameter name: <br>
@@ -110,7 +110,7 @@ Pipeline store collection:
 ![db store](/docs/pipeline_store.png ) <br>
 
 NOTE:
-1. The pipelines can be also **manually** created using the [PipelineStore API](#Dynamic-creation-and-running).   
+1. The pipelines can be also **manually** created using the [PipelineStore API](#dynamic-creation-and-running).   
 2. The file above although static it is input into the migration utility at process startup and thus seeded in the database. It can then be
    updated at runtime via the PipelineStore API or the file can be manually modified and on process startup it will be
    automatically updated in the database by the migration process. More on [Migration](#migration).
