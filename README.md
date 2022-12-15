@@ -105,6 +105,7 @@ Store the above bson file in your **source code**, under `src/main/resources/pip
 On migration (at process startup time) all the pipelines from that folder will be created(if new) or updated(if changed) in the database collection
 `pipeline_store`. Any future changes to the pipeline files will be detected and reflected in the database during migration run check. <br> 
 If you are not using Spring and *mongopipe-spring* dependency you need to manually call the migration at process startup using `Pipelines.startMigration()`.<br>
+
 Pipeline store collection:
 ![db store](/docs/pipeline_store.png ) <br>
 
