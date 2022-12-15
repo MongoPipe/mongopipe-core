@@ -102,9 +102,9 @@ For a list of all possible fields that you can use check the class
 [Pipeline](https://github.com/MongoPipe/mongopipe-core/blob/main/src/main/java/org/mongopipe/core/model/Pipeline.java) javadoc. <br>
 Store the above bson file in your **source code**, under `src/main/resources/pipelines` (configurable in step 1 
 [configuration](#1-configuration) via `MongoPipeConfig#migrationConfig#pipelinesPath`).<br>
-On migration (at process startup time) all the pipelines from that folder will be created(when new) or updated in the database collection
+On migration (at process startup time) all the pipelines from that folder will be created(if new) or updated(if changed) in the database collection
 `pipeline_store`. Any future changes to the pipeline files will be detected and reflected in the database during migration run check. <br> 
-If you are not using Spring and mongopipe-spring dependency you need to manually call the migration at process startup using `Pipelines.startMigration()`.
+If you are not using Spring and *mongopipe-spring* dependency you need to manually call the migration at process startup using `Pipelines.startMigration()`.<br>
 Pipeline store collection:
 ![db store](/docs/pipeline_store.png ) <br>
 
@@ -155,7 +155,7 @@ NOTE:
    when sorting on multiple fields the `{field1: 1, field2: -1}` can be provided as a Java map or pojo class
 
 # Migration
-The migration will be started automatically on process start if using Spring framework (mongopipe-spring dependency required) or manually
+The migration will be started automatically on process start if using Spring framework (*mongopipe-spring* dependency required) or manually
 by invoking:
 `Pipelines.startMigration()`. <br>
 It will detect all the pipelines that have changed or are new by comparing checksums of the source pipelines with the existing pipelines in
