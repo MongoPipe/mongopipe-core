@@ -112,7 +112,7 @@ NOTE:
 1. The pipelines can be also **manually** created using the PipelineStore API(`Pipelines.getStore()`).   
 2. The file above although static it is input into the migration utility at process startup and thus seeded in the database. It can then be
    updated at runtime via the PipelineStore API or the file can be manually modified and on process startup it will be
-   automatically updated in the database by the migration process. More on [Migration)(README.md#Migration).
+   automatically updated in the database by the migration process. More on [Migration](README.md#Migration).
 3. **The parameters form is `"${paramName}"`**. <br>
    Parameters inside the pipeline template **must** be strings (e.g. `"..": "${paramName}"`) in order to be a valid BSON.
    On pipeline run the **actual parameters values can be of any type including complex types: lists, maps, pojos** as long as it can be
@@ -151,8 +151,8 @@ If you do not want to use an interface to define the pipeline run methods you ca
 ```
 NOTE:
 1. Store obtained via `Stores.getPipelineStore()` can be used also to create, update and delete pipelines.
-2. You can also parameterize an entire pipeline stage/subparts of a stage and send a list/map/pojo/bson as an actual parameter. For example
-   When sorting on multiple fields the `{field1: 1, field2: -1}` can be provided as a Java map or pojo class
+2. You can also parameterize an entire pipeline stage/subparts of a stage and send an object, array, pojo or bson type as an actual parameter. For example
+   when sorting on multiple fields the `{field1: 1, field2: -1}` can be provided as a Java map or pojo class
 
 # Migration
 The migration will be started automatically on process start if using Spring framework (mongopipe-spring dependency required) or manually

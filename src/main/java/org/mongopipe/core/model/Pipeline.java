@@ -37,7 +37,7 @@ import static org.mongopipe.core.util.BsonUtil.toBsonList;
  * No return type of the pipeline is provided since that would tie to implementation and restrict refactoring.
  *
  * User provided variables/parameters are String values similar with <code>{... field: "${paramName}", ...}</code> but will get replaced
- * with the actual type (number, string, object, array) of the value provided by the user when the pipeline is run.
+ * with the actual type (object, array, pojo or bson type) of the value provided by the user when the pipeline is run.
  *
  * You can create a Pipeline multiple ways:
  *    1. Manually using <pre>Stores.getPipelineStore().create</pre>
