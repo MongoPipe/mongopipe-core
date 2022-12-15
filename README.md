@@ -134,7 +134,7 @@ Sometimes instead of using an interface to define the pipeline run methods you c
     pipelineStore.create(pipeline);
     
     // 2. Dynamically using BSON API, static imports are from Mongo driver API class: com.mongodb.client.model.Aggregates / Filters.        
-    Bson matchStage = match(and(eq("size", "$size"), eq("available", "$available")));
+    Bson matchStage = match(and(eq("size", "${size}"), eq("available", "${available}")));
     Bson sortByName = sort(descending("name"));
     pipelineStore.create(Pipeline.builder()        
         .id("matchingPizzas")

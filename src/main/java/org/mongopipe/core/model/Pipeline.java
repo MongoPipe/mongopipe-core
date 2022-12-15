@@ -47,22 +47,27 @@ import static org.mongopipe.core.util.BsonUtil.toBsonList;
  * Manual creation:
  * <pre>
  *     // Use PipelineStore for any CRUD operations on pipelines.
- *     PipelineStore pipelineStore = Stores.getPipelineStore();
+ *     PipelineStore pipelineStore = Pipelines.getStore();
  *
  *     // 1. From a String:
- *     String bsonStringPipeline = "{ \"id\": \"myPipeline\", \"collection\": \"pizzaCollection\", \"pipeline\": [ ...";
+ *     String bsonStringPipeline = "{ \"id\": \"matchingPizzas\", \"collection\": \"pizzas\", \"pipeline\": [ ...";
  *     Pipeline pipeline = BsonUtil.toPojo(bsonString, Pipeline.class);
- *     pipelineStore.createPipeline(pipeline);
+ *     pipelineStore.create(pipeline);
  *
  *     // 2. Dynamically using BSON API, static imports are from Mongo driver API class: com.mongodb.client.model.Aggregates / Filters.
- *     Bson matchStage = match(and(eq("size", "$size"), eq("available", "$available")));
- *     Bson sortByCountStage = sort(descending("price"));
- *     pipelineStore.createPipeline(Pipeline.builder()
- *         .id("myPipeline")
- *         .pipeline(asList(matchStage, sortByCountStage))
+ *     Bson matchStage = match(and(eq("size", "${size}"), eq("available", "${available}")));
+ *     Bson sortByName = sort(descending("name"));
+ *     pipelineStore.create(Pipeline.builder()
+ *         .id("matchingPizzas")
+ *         .pipeline(asList(matchStage, sortByName))
  *         //.pipelineAsString("...") can be also provided as a string
- *         .collection("testCollection")
+ *         .collection("pizzas")
  *         .build());
+ *
+ *     // Run
+ *     PipelineRunner pipelineRunner = Pipelines.getRunner();
+ *     List<Pizza> pizzas = pipelineRunner.run("matchingPizzas", Pizza.class, Maps.of("size", "medium", "available", true))
+ *         .collect(Collectors.toList());
  * </pre>
  *
  */
