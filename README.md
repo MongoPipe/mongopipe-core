@@ -98,7 +98,9 @@ On migration (at process startup time) all the pipelines from that folder will b
 `pipeline_store`. <br>
 If you are not using Spring and mongopipe-spring dependency you need to manually call the migration on process start like this:
 `Pipelines.startMigration()` and all the pipelines will be loaded into the database.
-![logo](docs/pipeline_store.png ) <br>
+![db store](/docs/pipeline_store.png ) <br>
+<br> ![logo](docs/vs.png ) <br>
+<br> ![pipeline store](docs/pipeline_store.png ) <br>
 
 NOTE:
 1. The pipelines can be also **manually** created using the PipelineStore API(`Pipelines.getStore()`).
