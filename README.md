@@ -110,7 +110,7 @@ Pipeline store collection:
 ![db store](/docs/pipeline_store.png ) <br>
 
 NOTE:
-1. The pipelines can be also **manually** created using the PipelineStore API(`Pipelines.getStore()`).   
+1. The pipelines can be also **manually** created using the [PipelineStore API](#Dynamic-creation-and-running).   
 2. The file above although static it is input into the migration utility at process startup and thus seeded in the database. It can then be
    updated at runtime via the PipelineStore API or the file can be manually modified and on process startup it will be
    automatically updated in the database by the migration process. More on [Migration](#migration).
