@@ -83,18 +83,22 @@ Stores.from(MyRestaurant.class)
 ## 3. Create BSON pipeline
 Create resource file `myFirstPipeline.bson` that will be automatically inserted(via migration process) in the database collection
 `pipeline_store`:
-
 ```bson
 {
  "id": "matchingPizzasBySize",
  "collection": "pizzaCollection",
  "pipeline": [
-    {
-       $match: { size: "${pizzaSize}" }
-    }
-  ]
+   {
+      $match: { size: "${pizzaSize}" }
+   },
+   { 
+      $sort : { name : 1 } 
+   }
+ ]
 }
 ```
+For a list of all possible fields that you can use check the class 
+[Pipeline](https://github.com/MongoPipe/mongopipe-core/blob/main/src/main/java/org/mongopipe/core/model/Pipeline.java) javadoc.
 Store the above bson file in your **source code**, under `src/main/resources/pipelines` (configurable (step 1) via
 `MongoPipeConfig#migrationConfig#pipelinesPath`).<br>
 On migration (at process startup time) all the pipelines from that folder will be created/updated in the database collection
@@ -105,7 +109,7 @@ all the pipelines will be loaded into the database.
 ![db store](/docs/pipeline_store.png ) <br>
 
 NOTE:
-1. The pipelines can be also **manually** created using the PipelineStore API(`Pipelines.getStore()`).
+1. The pipelines can be also **manually** created using the PipelineStore API(`Pipelines.getStore()`).   
 2. The file above although static it is input into the migration utility at process startup and thus seeded in the database. It can then be
    updated at runtime via the PipelineStore API or the file can be manually modified and on process startup it will be
    automatically updated in the database by the migration process. More on [Migration)(README.md#Migration).
