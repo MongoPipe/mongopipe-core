@@ -24,12 +24,15 @@ Usage examples:
 MongoDB pipelines can be used for both **querying and updating** the data.<br>
 No hardcoding meaning: <br> ![logo](docs/vs.png ) <br>
 
-## 3 easy steps.
+# Documentation
+Documentation hosted at [https://www.mongopipe.org/](https://www.mongopipe.org/). 
+
+# 3 easy steps.
 1. [Configuration](README.md#Configuration)
 2. [Create your @Store](README.md#Create-your-store)
 3. [Create BSON pipeline](README.md#Create-BSON-pipeline)
 
-### 1. Configuration
+## 1. Configuration
 Maven dependency
 ```xml
 <dependency>
@@ -47,7 +50,7 @@ Stores.registerConfig(MongoPipeConfig.builder()
 ```
 Find more examples in samples [repo](https://github.com/MongoPipe/Examples).
 
-### 2. Create your store
+## 2. Create your store
 ```java
 @Store
 public interface MyRestaurant {
@@ -77,7 +80,7 @@ Stores.from(MyRestaurant.class)
 3. As secondary functionality, it supports generation of a CRUD operation just from the method naming similar with Spring Data.
    See [CRUD stores](README.md#CRUD-stores)
 
-### 3. Create BSON pipeline
+## 3. Create BSON pipeline
 Create resource file `myFirstPipeline.bson` that will be automatically inserted(via migration process) in the database collection
 `pipeline_store`:
 
@@ -92,7 +95,7 @@ Create resource file `myFirstPipeline.bson` that will be automatically inserted(
   ]
 }
 ```
-Store the above <pipeline_name.bson> file in your **source code**, under folder `"src/main/resources/pipelines"` (configurable (step 1) via
+Store the above bson file in your **source code**, under `src/main/resources/pipelines` (configurable (step 1) via
 `MongoPipeConfig#migrationConfig#pipelinesPath`).<br>
 On migration (at process startup time) all the pipelines from that folder will be created/updated in the database collection
 `pipeline_store`. <br>
