@@ -64,7 +64,7 @@ public interface MyRestaurant {
 @Autowired
 MyRestaurant myRestaurant;
 ...
-myRestaurant.getMatchingPizzas("MEDIUM", ...);
+myRestaurant.getMatchingPizzas("MEDIUM");
 
 // B. Without Spring:
 Stores.from(MyRestaurant.class)
@@ -72,13 +72,14 @@ Stores.from(MyRestaurant.class)
 
 ```
 **NOTE**:
-1. For **generic running** usages like the ones in the Intro section, meaning no need for pipeline stores(@Store annotated), you can use the
+1. The pipeline with the provided id (e.g. `"matchingPizzas"`) needs to be created in the pipeline store before you run it.
+2. For **generic running** usages like the ones in the Intro section, meaning no need for pipeline stores(@Store annotated), you can use the
    `Pipelines.getRunner().run` method.  More here: [Generic creation and running](#dynamic-creation-and-running) <br>
    You only need the pipeline document to exist in the database collection (*pipeline_store*) or to be provided inline.
-2. The parameters actual values provided are expected to be in the same order as in the pipeline template. For clearer identification
+3. The parameters actual values provided are expected to be in the same order as in the pipeline template. For clearer identification
    annotate using `@Param` the method parameter and provide the template parameter name: <br>
    `List<Pizza> getMatchingPizzas(@Param("pizzaSize") String pizzaSize)`.
-3. As secondary functionality, it supports generation of a CRUD operation just from the method naming similar with Spring Data.
+4. As secondary functionality, it supports generation of a CRUD operation just from the method naming similar with Spring Data.
    See [CRUD stores](#crud-stores)
 
 ## 3. Create BSON pipeline
@@ -102,9 +103,9 @@ For a list of all possible fields that you can use check the class
 [Pipeline](https://github.com/MongoPipe/mongopipe-core/blob/main/src/main/java/org/mongopipe/core/model/Pipeline.java) javadoc. <br>
 Store the above bson file in your **source code**, under `src/main/resources/pipelines` (configurable in step 1 
 [configuration](#1-configuration) via `MongoPipeConfig#migrationConfig#pipelinesPath`).<br>
-On migration (at process startup time) all the pipelines from that folder will be created(if new) or updated(if changed) in the database collection
-`pipeline_store`. Any future changes to the pipeline files will be detected and reflected in the database during migration run check. <br> 
-If you are not using Spring and *mongopipe-spring* dependency you need to manually call the migration at process startup using `Pipelines.startMigration()`.<br>
+On [Migration](#migration) (at process startup time) all the pipelines from that folder will be created(if new) or updated(if changed) in the database collection
+`pipeline_store`. Any future changes to the pipeline files will be detected and reflected in the database during startup migration run check. <br> 
+If you are not using Spring and *mongopipe-spring* dependency you need to manually call the migration on every process start using `Pipelines.startMigration()`.<br>
 
 Pipeline store collection:
 ![db store](/docs/pipeline_store.png ) <br>
@@ -156,10 +157,22 @@ NOTE:
 # Migration
 The migration will be started automatically on process start if using Spring framework (*mongopipe-spring* dependency required) or manually
 by invoking:
-`Pipelines.startMigration()`. <br>
-It will detect all the pipelines that have changed or are new by comparing checksums of the source pipelines with the existing pipelines in
-the database. Then it will take appropriate action (create or update) on each pipeline. <br>
-The prior value of an updated pipeline will be saved in the `pipeline_store_history` collection for backup purposes. This is configurable.
+```java
+Pipelines.startMigration();
+```
+How pipeline changes are detected:
+1. **Fast check**: A fast global checksum is created from the `lastModifiedTime` of all incoming pipelines and this checksum is compared with the existing one in the db (saved in the previous run).
+2. **Deep check**: If the global checksum based on timestamp matches then skip migration. Else iterate on each incoming pipeline, create a checksum based on content, compare it with the existing checksum in db(saved in a previous run) and create/update db pipeline if content checksums do not match. Also save latest checksums at the end. <br>
+The prior value of an updated pipeline will be saved in the `pipeline_store_history` collection for backup purposes. This is configurable. <br>
+Default pipeline migration golden source is `src/main/resources/pipelines` (configurable in step 1 
+[configuration](#1-configuration) via `MongoPipeConfig#migrationConfig#pipelinesPath`) so store your pipelines bson files in that folder. <br>
+The pipelines golden source is also configurable in case you want to keep track of the original pipelines within a database instead of a resources folder:
+```java
+RunContextProvider.getContext().setPipelineMigrationSource(yourDbPipelineSource);
+```
+Still remember that the final destination of the pipelines (after migration), is the `pipeline_store` db collection where you can update them any time at runtime.<br>
+A pipeline that was modified at runtime (in the pipeline store) but did not had the golden source updated will not be overwritten on migration.
+It will only be overwritten when the corresponding pipeline is updated in the golden source.
 
 # CRUD stores
 A @Store annotated interface can support both @PipelineRun methods and also CRUD methods by naming convention.<br>
@@ -193,11 +206,12 @@ For performing data updates:
    The findOneAndUpdate allows also to insert the document if it does not exist.
 
 # TODO
-- Use JavaDoc links in the documentation instead of class names only.
+- Spring library.
+- Publish JavaDoc, use JavaDoc links in the documentation instead of class names only.
 
 # Support and get in touch
-<img src="https://github.com/ionic-team/ionicons/blob/main/src/svg/settings-outline.svg" width="20"/><img src="https://github.com/ionic-team/ionicons/blob/main/src/svg/bug-outline.svg" width="20"/>
-If you have a bug or an idea, browse the open issues and create a new one. <br>
+<img src="https://github.com/ionic-team/ionicons/blob/main/src/svg/settings-outline.svg" width="20"/><img src="https://github.com/ionic-team/ionicons/blob/main/src/svg/bug-outline.svg" width="20"/> 
+Contributions are welcomed from everyone. If you have a bug/proposal just browse the open issues and create a new one. <br>
 
 <img src="https://github.com/ionic-team/ionicons/blob/main/src/svg/mail-outline.svg" width="20"/> We like direct discussions. Check email address on the github profile of the committers.
 
