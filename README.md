@@ -140,8 +140,7 @@ Stores.from(MyRestaurant.class)
     
 
 # More on pipeline files
-Pipeline store collection: ![db store](/docs/pipeline_store.png ) <br>
-
+* Pipeline files/sources end up in the pipeline_store collection: ![db store](/docs/pipeline_store.png )
 * The pipelines can be also **manually** created using the [PipelineStore API](#dynamic-creation-and-running-with-criterias).   
 * The json pipeline file although static it is input into the migration utility at process startup and thus seeded in the database. It can then be
    updated at runtime via the PipelineStore API or the file can be manually modified and on process startup it will be
