@@ -16,7 +16,6 @@
 
 package org.mongopipe.core.migration;
 
-import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.Stores;
 import org.mongopipe.core.config.MigrationConfig;
 import org.mongopipe.core.exception.MongoPipeMigrationException;
@@ -66,6 +65,7 @@ public class MigrationRunner {
       LOG.warn("Skip pipeline migration.");
       return;
     }
+    LOG.info("Run pipeline migration");
     PipelineMigrationSource source = runContext.getPipelineMigrationSource();
 
     if (source == null) {

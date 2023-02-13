@@ -46,7 +46,7 @@ public class Pipelines {
   public static PipelineStore getStore(String runConfigId) {
     RunContext runContext = RunContextProvider.getContext(runConfigId);
     if (runContext == null) {
-      throw new MongoPipeConfigException("Mongo-pipe configuration is missing. Use 'Pipelines.newConfig()' for this.");
+      throw new MongoPipeConfigException("Mongo-pipe configuration is missing. Create MongoPipeConfig bean/instance.");
     }
     PipelineStore pipelineStore = new PipelineStore(runContext);
     STORE_MAP.put(runConfigId, pipelineStore);

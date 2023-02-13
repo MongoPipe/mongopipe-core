@@ -251,4 +251,10 @@ public class BsonUtil {
     return Paths.get(Objects.requireNonNull(BsonUtil.class.getClassLoader().getResource(resourcePath)).toURI());
   }
 
+  public static String escapeJsonFieldValue(String s) {
+    if (s == null) {
+      return s;
+    }
+    return s.replaceAll("\"","\\\\\"");
+  }
 }

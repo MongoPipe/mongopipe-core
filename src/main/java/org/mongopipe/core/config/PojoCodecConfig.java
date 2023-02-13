@@ -52,7 +52,8 @@ public class PojoCodecConfig {
         .enableDiscriminator(true).build();
     ClassModel<FindOneAndUpdateOptions> findOneAndUpdateParamsClassModel = ClassModel.builder(FindOneAndUpdateOptions.class)
         .enableDiscriminator(true).build();
-
+    //ClassModel<Pipeline> pipelineClassModel = ClassModel.builder(Pipeline.class)
+    //    .conventions(Arrays.asList(OBJECT_ID_GENERATORS)).build();
 
     codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
         CodecRegistries.fromProviders(PojoCodecProvider.builder()
