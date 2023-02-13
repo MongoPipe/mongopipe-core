@@ -18,6 +18,7 @@ package org.mongopipe.core.config;
 
 import com.mongodb.client.MongoClient;
 import org.mongopipe.core.runner.context.RunContext;
+import org.mongopipe.core.runner.context.RunContextProvider;
 
 /**
  * Library main configuration.
@@ -48,7 +49,7 @@ public class MongoPipeConfig {
   /**
    * If having multiple databases then you will need to provide an "id" identifying each.
    */
-  protected String id;
+  protected String id = RunContextProvider.DEFAULT_CONTEXT_ID;
 
   /**
    * Name of collection storing pipelines.
@@ -66,10 +67,16 @@ public class MongoPipeConfig {
   /**
    * If true then store provider should use local caching of the pipelines instead of hitting the database each time.
    * By default is disabled meaning it will read from the database the pipeline before each execution.
+   * To manually refresh the cache like when the database is updated by another external process, manually call PipelineStore#refresh().
    */
   protected boolean storeCacheEnabled;
 
   protected MigrationConfig migrationConfig;
+
+  /**
+   * Scan package where to look for stores (@Store annotated). If not provided entire classpath will be scanned.
+   */
+  protected String scanPackage;
 
   private MongoPipeConfig(Builder builder) {
     setUri(builder.uri);
@@ -82,6 +89,7 @@ public class MongoPipeConfig {
     setStatusCollection(builder.statusCollection);
     setStoreCacheEnabled(builder.storeCacheEnabled);
     setMigrationConfig(builder.migrationConfig);
+    setScanPackage(builder.scanPackage);
   }
 
   public static Builder builder() {
@@ -168,6 +176,13 @@ public class MongoPipeConfig {
     this.migrationConfig = migrationConfig;
   }
 
+  public String getScanPackage() {
+    return scanPackage;
+  }
+
+  public void setScanPackage(String scanPackage) {
+    this.scanPackage = scanPackage;
+  }
 
   public static final class Builder {
     private String uri;
@@ -180,6 +195,7 @@ public class MongoPipeConfig {
     private String statusCollection = DEFAULT_STATUS_COLLECTION;
     private boolean storeCacheEnabled;
     private MigrationConfig migrationConfig = MigrationConfig.builder().build();
+    private String scanPackage;
 
     private Builder() {
     }
@@ -231,6 +247,11 @@ public class MongoPipeConfig {
 
     public Builder migrationConfig(MigrationConfig val) {
       migrationConfig = val;
+      return this;
+    }
+
+    public Builder scanPackage(String val) {
+      scanPackage = val;
       return this;
     }
 

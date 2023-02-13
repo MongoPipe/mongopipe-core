@@ -16,7 +16,6 @@
 
 package org.mongopipe.core.store;
 
-import org.mongopipe.core.Pipelines;
 import org.mongopipe.core.Stores;
 import org.mongopipe.core.config.MongoPipeConfig;
 import org.mongopipe.core.exception.MongoPipeConfigException;
@@ -36,11 +35,9 @@ import java.time.LocalDateTime;
 import static org.mongopipe.core.util.BsonUtil.toBsonList;
 
 /**
- * Handles the storage for MongoPipelines.
- * Use a store interface that might store them in any database (SQL/NoSQL), in memory cache or let the user provide his own implementation.
- * For in memory use a cache library or map implementation(but without collisions, unlike Java default Map implementations). By default
- * disable cache.
- *
+ * Handles the storage for MongoPipelines.<p>
+ * Uses an interface that might store them in any database (SQL/NoSQL), in memory cache or let the user provide his own implementation.<p>
+ * By default configuration (MongoPipeConfig#storeCacheEnabled) the store uses a cache to avoid DB trips when reading/fetching a pipeline.
  */
 public class PipelineStore {
   private static final Log LOG = CustomLogFactory.getLogger(PipelineStore.class);
@@ -149,5 +146,14 @@ public class PipelineStore {
 
   public Iterable<Pipeline> findAll() {
     return crudStore.findAll();
+  }
+
+  /**
+   * Refresh any existing cache if cache is used (i.e. 'MongoPipeConfig#storeCacheEnabled' config property is set on true).
+   * If an external process modifies the database, use you notification mechanism of choice and call this method from the listener.
+   * TODO: Add MongoDB ChangeStreams
+   */
+  public void refresh() {
+    changeNotifier.fire();
   }
 }

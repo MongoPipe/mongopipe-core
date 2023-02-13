@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 public class FetchCachedPipeline implements FetchPipeline {
 
   private final FetchPipeline fetchPipelineStoreDelegate;
+  // For in memory use a cache library or map implementation(but without collisions, unlike Java default Map implementations). By default
+  // disable cache.
   Map<String, Pipeline> cache = new ConcurrentHashMap<>();
 
   public FetchCachedPipeline(FetchPipeline fetchPipelineStoreDelegate) {

@@ -17,14 +17,17 @@
 package org.mongopipe.core.model;
 
 import org.bson.BsonDocument;
+import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.conversions.Bson;
 import org.mongopipe.core.runner.command.param.CommandOptions;
+import org.mongopipe.core.util.BsonUtil;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.mongopipe.core.util.BsonUtil.escapeJsonFieldValue;
 import static org.mongopipe.core.util.BsonUtil.toBsonList;
 
 /**
@@ -71,23 +74,26 @@ import static org.mongopipe.core.util.BsonUtil.toBsonList;
  * </pre>
  *
  */
-public class Pipeline extends MongoEntity {
+public class Pipeline {
+
+  @BsonId
+  protected String id;
+
   /**
    * The version will increase on each pipeline update performed by the org.mongopipe.core.migration or by an store update operation.
    */
-  Long version;
-  LocalDateTime createdAt;
-  LocalDateTime updatedAt;
+  protected Long version;
+  protected LocalDateTime createdAt;
+  protected LocalDateTime updatedAt;
 
   /**
-   * Stores all the pipeline stages as a BSON array.
-
+   * Stores all the pipeline stages as a BSON array.<p>
    * Pipeline stages <a href="https://www.mongodb.com/docs/manual/reference/operator/aggregation-pipeline/">documentation</a>.
    * The raw/template BSON pipeline that is run by MongoDB. This contains pipeline variables in the form of ${variableName}. The values for
    * those variables are provided when the pipeline is run.
    * You can also provide it as a JSON string when calling the builder 'jsonPipeline' method but it will eventually be saved as a bson list.
    */
-  List<BsonDocument> pipeline;
+  protected List<BsonDocument> pipeline;
 
   /**
    * Stores all the pipeline stages as a String. This is by default a automatically generated copy of the Pipeline#pipeline field but if it
@@ -98,26 +104,26 @@ public class Pipeline extends MongoEntity {
    * Used mainly because it is simpler to edit directly in the DB and many users will have easier direct access to DB than API.
    * It is automatically generated from the bson list on each create/update via the API.
    */
-  String pipelineAsString = "[]";
+  protected String pipelineAsString = "[]";
 
   /**
    * Target collection on which to run.
    */
-  String collection;
-  String description;
+  protected String collection;
+  protected String description;
 
   /**
    * Optionally the MongoDB command type and params that will use the pipeline. Defaulted to run 'db.collection.aggregate()'.
    * NOTE: These are NOT the same as the actual pipeline inline variables provided by the user on pipeline execution.
    */
-  CommandOptions commandOptions;
+  protected CommandOptions commandOptions;
 
   /**
    * Optionally extra JSON serializable information (e.g. array or object) that is <b>provided by user</b> and stored along with the
    * pipeline. E.g. Sample pipeline template parameter values for a hint on what values to provide for template variables.
    * TODO: Consider using @BsonExtraElements annotation. See https://www.mongodb.com/docs/drivers/java/sync/current/fundamentals/data-formats/pojo-customization/
    */
-  Serializable extra;
+  protected Serializable extra;
 
   public Pipeline() {
   }
@@ -315,25 +321,44 @@ public class Pipeline extends MongoEntity {
   }
 
   @Override
-  public java.lang.String toString() {
-    return "Pipeline(version="
-        + this.getVersion()
-        + ", createdAt="
-        + this.getCreatedAt()
-        + ", updatedAt="
-        + this.getUpdatedAt()
-        + ", pipeline="
-        + this.getPipeline()
-        + ", pipelineAsString="
-        + this.getPipelineAsString()
-        + ", collection="
-        + this.getCollection()
-        + ", description="
-        + this.getDescription()
-        + ", commandOptions="
-        + this.getCommandOptions()
-        + ", extra="
-        + this.getExtra()
-        + ")";
+  public String toString() {
+    // For nice looking debug string.
+    StringBuilder sb = new StringBuilder("{ ");
+    sb.append(String.format("\"_id\": \"%s\", \"version\": %s, \"collection\": \"%s\"", escapeJsonFieldValue(getId()), getVersion(),
+        escapeJsonFieldValue(getCollection())));
+
+    // Display one or another.
+    if (getPipelineAsString() == null || "[]".equals(getPipelineAsString())) {
+      if (getPipeline() != null) {
+        String pipelineJson;
+        try {
+          pipelineJson = BsonUtil.toString(getPipeline());
+        } catch (Exception e) {
+          pipelineJson = e.getClass() + ":" + e.getMessage();
+        }
+        sb.append(", \"pipelineAsString\":\"" + escapeJsonFieldValue(pipelineJson) + "\"");
+      }
+    } else {
+      sb.append(", \"pipelineAsString\":\"" + escapeJsonFieldValue(getPipelineAsString()) + "\"");
+    }
+
+    if (getDescription() != null) {
+      sb.append(", \"description\":" + escapeJsonFieldValue(getDescription()));
+    }
+    if (getCommandOptions() != null) {
+      sb.append(", \"commandOptions\":" + getCommandOptions());
+    }
+    if (getExtra() != null) {
+      sb.append(", \"extra\":" + getExtra());
+    }
+    if (getCreatedAt() != null) {
+      sb.append(", \"createdAt\":" + getCreatedAt());
+    }
+    if (getUpdatedAt() != null) {
+      sb.append(", \"updatedAt\":" + getUpdatedAt());
+    }
+    sb.append(" }");
+    return sb.toString();
   }
+
 }
