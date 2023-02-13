@@ -243,9 +243,8 @@ Examples:
 ```
 NOTE:
 * **Both PipelineStore and PipelineRunner can be easily called from an API like REST.** Example [here](https://github.com/MongoPipe/Examples/tree/main/src/main/java/org/test/sample_spring_boot/controller).
+* From the solutions above you should probably consider using 1 (MongoDB criterias API) or 2 (your own criteria API) or a combination of both.
 * Store obtained via `Pipelines.getStore()` can be used also to create, update and delete pipelines.
-* You can also parameterize an entire pipeline stage/subparts of a stage and send an object, array, pojo or bson type as an actual parameter. For example
-   when sorting on multiple fields the `{field1: 1, field2: -1}` can be provided as a Java map or pojo(e.g. org.bson.conversions.Bson) class.
 * The pipelines are cached so when running a pipeline that cache is hit first. The cache is automatically updated when you modify the pipelines via the API.
 * Once a pipeline is modified (with `PipelineStore`) you can continue to use both `@PipelineRun` annotated methods and`PipelineRunner` to run it.
 * As parameter values you can use not just plain Java types (int, long, float, strings, Map, List) but also any POJO class of your choice. 
