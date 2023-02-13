@@ -159,18 +159,23 @@ Stores.from(MyRestaurant.class)
 
 # Dynamic creation and running with criterias
 Sometimes instead of using an interface to define the pipeline run methods you can instead manually both create and run a pipeline.
-This is useful **if you do not want to create `@PipelineRun` annotated methods** for every pipeline run. By using `PipelineRunner` you can have a single endpoint to run any pipeline. <br>
-Also **subparts** of the pipeline can be constructed in multiple ways.
+This is useful **if you do not want to create `@PipelineRun` annotated methods** for every pipeline run. <br>
+By using `PipelineRunner` you can run any pipeline. <br>
+By using `PipelineStore` and criterias APIs, **subparts** of the pipeline can be constructed dynamically. <br>
+Examples: 
 
 ```java
     // Use PipelineStore for any CRUD operations on pipelines. 
     PipelineStore pipelineStore = Pipelines.getStore();
     PipelineRunner pipelineRunner = Pipelines.getRunner();
 
-    // You can create a pipeline dynamically or from criterias in several ways:
-
     // ********
-    // 1. Using "Mongo BSON criterias API", static imports are from Mongo driver API class: com.mongodb.client.model.Aggregates/Filters/Sorts.
+    // You can create a pipeline dynamically or from criterias in several ways:
+    // ********
+        
+    // ********
+    // 1. Using Mongo BSON criterias API, static imports are from Mongo driver API class: com.mongodb.client.model.Aggregates/Filters/Sorts.
+    // Documentation: https://www.mongodb.com/docs/drivers/java/sync/v4.7/fundamentals/crud/read-operations/    
     // ********
     // Pipeline stages one by one.
     List<Bson> pipelineBson = Arrays.asList(
