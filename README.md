@@ -22,6 +22,7 @@ A MongoDB **aggregation pipeline is a JSON document, so store it in the database
 * Pipelines are documents thus a structured format. 
 * Avoid native queries with 'DB agnostic' libraries.
 
+<p/>
 Some use cases:
 * **Runtime changes**. Want to be able to change underlying queries/rules and avoid the use of an additional abstraction layer(e.g. query builder) that might limit the full potential of the database.<br>
     E.g.: Configuring DB alerts/rules for a risk detection solution.
@@ -83,7 +84,7 @@ Stores.registerConfig(MongoPipeConfig.builder()
 
 ## 2. Create JSON pipelines
 Create a JSON resource file `myFirstPipeline.json` that will be automatically **migrated**(inserted) in the database collection `pipeline_store` at startup.<br>
-```json
+```bson
 {
  "id": "matchingPizzas",
  "collection": "pizzas",
