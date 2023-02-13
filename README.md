@@ -175,7 +175,7 @@ Examples:
         
     // ********
     // 1. Using Mongo BSON criterias API, static imports are from Mongo driver API class: com.mongodb.client.model.Aggregates/Filters/Sorts.
-    // Documentation: https://www.mongodb.com/docs/drivers/java/sync/v4.7/fundamentals/crud/read-operations/    
+    // Criterias examples: https://www.mongodb.com/docs/drivers/java/sync/v4.7/fundamentals/crud/read-operations/    
     // ********
     // Pipeline stages one by one.
     List<Bson> pipelineBson = Arrays.asList(
