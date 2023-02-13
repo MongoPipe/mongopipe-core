@@ -140,10 +140,12 @@ Stores.from(MyRestaurant.class)
     
 
 # More on pipeline files
-* Pipeline files/sources end up in the pipeline_store collection: ![db store](/docs/pipeline_store.png )
-* The pipelines can be also **manually** created using the [PipelineStore API](#dynamic-creation-and-running-with-criterias).   
-* The json pipeline file although static it is input into the migration utility at process startup and thus seeded in the database. It can then be
-   updated at runtime via the PipelineStore API or the file can be manually modified and on process startup it will be
+* Pipeline files/sources end up (via migration) in the `pipeline_store` collection: ![db store](/docs/pipeline_store.png )
+* Once migrated in the database pipelines can be independently updated/created at runtime using the [PipelineStore](https://javadoc.io/static/org.mongopipe/mongopipe-core/1.0/index.html?org/mongopipe/core/store/PipelineStore.html) CRUD API.<br>
+  Future file updates to the pipeline file will be promoted to DB via automatic migration on startup.
+* The pipelines can be also **manually** created/updated using the [dynamic way](#dynamic-creation-and-running-with-criterias).
+* The json pipeline file although static is the input into the migration utility at process startup and thus seeded in the database. It can then be
+   updated at runtime via the PipelineStore API or the seed file can be manually modified and on next process startup it will be
    automatically updated in the database by the migration process. More on [Migration](#migration).
 * **The parameters form is `"${paramName}"`**. <br>
    Parameters inside the pipeline template **must** be strings (e.g. `"..": "${paramName}"`) in order to be valid JSON.
@@ -153,8 +155,6 @@ Stores.from(MyRestaurant.class)
    `"x": "${paramName}",` will become an integer value:<br>
    `"x": 10,`
 * The pipeline files can have .json or .bson file extension. It is recommended to use .bson extension when the pipeline contains BSON types that are not standard JSON.
-* Once migrated in the database pipelines can be independently updated/created at runtime using the [PipelineStore](https://javadoc.io/static/org.mongopipe/mongopipe-core/1.0/index.html?org/mongopipe/core/store/PipelineStore.html) CRUD API.<br>
-  Future file updates to the pipeline file will be promoted to DB via automatic migration on startup.
 
 
 # Dynamic creation and running with criterias
