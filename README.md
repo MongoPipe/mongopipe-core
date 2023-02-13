@@ -83,7 +83,7 @@ Stores.registerConfig(MongoPipeConfig.builder()
 ```
 
 ## 2. Create JSON pipelines
-Create a JSON resource file `myFirstPipeline.json` that will be automatically **migrated**(inserted) in the database collection `pipeline_store` at startup.<br>
+Create a JSON/BSON resource file `myFirstPipeline.json` that will be automatically **migrated**(inserted) in the database collection `pipeline_store` at startup.<br>
 ```bson
 {
  "id": "matchingPizzas",
