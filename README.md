@@ -16,14 +16,18 @@
 How to store MongoDB aggregation pipelines in the database and run them?. <br>
 A MongoDB **aggregation pipeline is a JSON document, so store it in the database.** <br>
 
-<img src="https://github.com/MongoPipe/mongopipe-core/blob/main/docs/question.png height="200px" align="left"/>
-* Runtime configurability
+<a href="https://github.com/MongoPipe/">
+<img src="https://github.com/MongoPipe/mongopipe-core/blob/main/docs/question.png?raw=true" alt="logo.png" height="700px" align="left"/>
+</a>
+
+## Why storing queries in DB?
+
+* **Runtime configurability**
 * Hardcoding avoided (code page long native queries)
 * Pipelines are documents thus a structured format. 
 * Avoid native queries with 'DB agnostic' libraries.
 
-<p/>
-Some use cases:
+# Use cases:
 * **Runtime changes**. Want to be able to change underlying queries/rules and avoid the use of an additional abstraction layer(e.g. query builder) that might limit the full potential of the database.<br>
     E.g.: Configuring DB alerts/rules for a risk detection solution.
 * **Urgent** changes by DBAs/admins are needed without waiting for patches/releases containing changed queries. <br>
@@ -107,7 +111,7 @@ Create a JSON/BSON resource file `myFirstPipeline.json` that will be automatical
 
 
 ## 3. Run pipelines
-This will bind code (interface methods) to pipelines stored in DB. Create just an interface:
+Create just an interface with @PipelineRun annotations. This way you **bind code (interface methods) with pipelines stored in DB.**
 ```java
 @Store
 public interface MyRestaurant {
@@ -127,15 +131,16 @@ Stores.from(MyRestaurant.class)
 
 ```
 **NOTE**:
-1. The `@Store` class annotation is mandatory. The `@PipelineRun` annotation is optional and if missing will be defaulted to the method name. 
-2. For **generic running** usages like the ones in the Intro section, meaning **no** need for pipeline stores(`@Store` annotated), you can use the
+* Internally a proxy store delegator is created for each @Store annotated interface and for each @PipelineRun annotation will execute the corresponding DB stored pipeline. 
+* The `@Store` class annotation is mandatory. The `@PipelineRun` annotation is optional and if missing will be defaulted to the method name. 
+* For **generic running** usages like the ones in the Intro section, meaning **no** need for pipeline stores(`@Store` annotated), you can use the
    `Pipelines.getRunner().run` method.  More here: [Generic creation and running](#dynamic-creation-and-running-with-criterias)
    **You can use this behind a REST api to generically create and run pipelines**. <br>
    You only need the pipeline document to exist in the database collection (*pipeline_store*) or to be provided at runtime.
-3. The parameters actual values provided are expected to be in the same order as in the pipeline template. For clearer identification
+* The parameters actual values provided are expected to be in the same order as in the pipeline template. For clearer identification
    annotate using `@Param` the method parameter and provide the template parameter name: <br>
    `List<Pizza> getMatchingPizzas(@Param("pizzaSize") String pizzaSize)`.
-4. As secondary functionality, it supports generation of a CRUD operation just from the method naming similar with Spring Data.
+* As secondary functionality, it supports generation of a CRUD operation just from the method naming similar with Spring Data.
    See [CRUD stores](#crud-stores)
     
 
@@ -242,7 +247,7 @@ Examples:
 
 ```
 NOTE:
-* **Both PipelineStore and PipelineRunner can be easily called from an API like REST.** Example [here](https://github.com/MongoPipe/Examples/tree/main/src/main/java/org/test/sample_spring_boot/controller).
+* **Both PipelineStore and PipelineRunner can be easily called from an API like REST.** Example [REST api](https://github.com/MongoPipe/Examples/blob/main/src/main/java/org/test/sample_spring_boot/controller/MongoPipeController.java) from the 'Examples' repo.
 * From the solutions above you should probably consider using 1 (MongoDB criterias API) or 2 (your own criteria API) or a combination of both.
 * Store obtained via `Pipelines.getStore()` can be used also to create, update and delete pipelines.
 * The pipelines are cached so when running a pipeline that cache is hit first. The cache is automatically updated when you modify the pipelines via the API.
@@ -272,7 +277,7 @@ It will only be overwritten when the corresponding pipeline is updated in the go
 
 # CRUD stores
 **NOTE: This is subject to change.** <br>
-A @Store annotated interface can support both @PipelineRun methods and also CRUD methods by naming convention.<br>
+A @Store annotated interface can support both `@PipelineRun` methods and also CRUD methods by naming convention.<br>
 For CRUD methods by naming convention (similar with Spring Data) the method signature must match one of the methods from `org.mongopipe.core.store.CrudStore`.
  E.g.:
 ```java
@@ -289,17 +294,17 @@ public interface PizzaRestaurant {
 }
 ```
 NOTE:
-1. The store(via the `@Store` annotation) decides where to put the items and not vice versa, meaning an item type class is STORAGE AGNOSTIC.
-   Thus, the annotation `@Store#items` field acts as a database **mapping definition**.
+1. The store(via the `@Store` annotation) decides where to put the items and not vice versa, meaning an item type class is almost **storage agnostic**.
+   Thus, the annotation **`@Store#items` field acts as a database mapping definition recipe**.
    Another benefit of this mapping definition is that it can be stored in db or in a file, referenced by id, or defaulted to all stores.
 2. This feature is not yet mature, main feature is to manage and run pipelines.
 
 # More examples
 Find more examples in samples [repo](https://github.com/MongoPipe/Examples).
 
-# Update operations
-For performing data updates: 
-1. Without pipelines, you can use [CRUD stores](#crud-stores)
+# Data update operations
+For performing data updates on MondoDB documents there are several options: 
+1. Without pipelines, you can use [CRUD stores](#crud-stores). Still has a limited set of operations.
 2. With pipelines, using [update stages](https://www.mongodb.com/docs/manual/tutorial/update-documents-with-aggregation-pipeline/) like for example the `$replaceRoot`.
 3. With pipelines, using dedicated commands like for example [findOneAndUpdate](findOneAndUpdate()) which can be run by setting `Pipeline#commandOptions`.
    The findOneAndUpdate allows also to insert the document if it does not exist.
