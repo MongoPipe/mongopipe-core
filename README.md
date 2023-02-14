@@ -1,9 +1,5 @@
 # mongopipe-core
 
-<a href="https://github.com/MongoPipe/">
-<img src="https://github.com/MongoPipe/mongopipe-core/blob/main/docs/mongopipe.gif?raw=true" alt="logo.png" height="150px" align="right"/>
-</a>
-
 [![Licence](https://img.shields.io/hexpm/l/plug.svg)](https://github.com/MongoPipe/mongopipe-core/blob/master/LICENSE)
 [![Open Source](https://badges.frapsoft.com/os/v3/open-source.svg)](https://opensource.org/)
 [![Supported JVM](https://img.shields.io/badge/supported%20JVM-8%2C%209+%20(19)-blueviolet)](https://img.shields.io/badge/supported%20JVM-8%2C%209+%20(19)-blueviolet)
@@ -11,6 +7,7 @@
 [![GitHub open issues](https://img.shields.io/github/issues/mongopipe/mongopipe-core?color=GREEN)](https://img.shields.io/github/issues/mongopipe/mongopipe-core?color=GREEN)
 [![GitHub open issues](https://img.shields.io/github/last-commit/mongopipe/mongopipe-core)](https://img.shields.io/github/last-commit/mongopipe/mongopipe-core)
 [![javadoc](https://javadoc.io/badge2/org.mongopipe/mongopipe-core/javadoc.svg)](https://javadoc.io/doc/org.mongopipe/mongopipe-core)
+![Mongopipe](/docs/mongopipe.gif )<br>
 
 # Intro
 How to store MongoDB aggregation pipelines in the database and run them?. <br>
@@ -23,18 +20,18 @@ A MongoDB **aggregation pipeline is a JSON document, so store it in the database
 ## Why storing queries in DB?
 
 * **Runtime configurability**
-* Hardcoding avoided (code page long native queries)
+* Hardcoding avoided (no more one code page long native queries together with the code)
 * Pipelines are documents thus a structured format. 
 * Avoid native queries with 'DB agnostic' libraries.
 
 # Use cases:
-* **Runtime changes**. Want to be able to change underlying queries/rules and avoid the use of an additional abstraction layer(e.g. query builder) that might limit the full potential of the database.<br>
+* **Runtime changes**. Want to be able to change underlying queries/rules and avoid the use of an abstraction layer(e.g. query builder) that might limit the full potential of the database.<br>
     E.g.: Configuring DB alerts/rules for a risk detection solution.
 * **Urgent** changes by DBAs/admins are needed without waiting for patches/releases containing changed queries. <br>
    Thus the system can adapt quickly and the admin/dba doing them would not need coding or devops skills.
-* **UI widgets data source customization**. An admin can easily customize a chart, a report or a widget data source by just editing the backing pipeline via a REST api.
-   <br>For example a combo box display a limit of 5 countries stored in the DB, may need to display 10 countries filtered on different conditions
-  based on the client(multitenant) id. Keeping a hardcoded query for each client would be too complex.  
+* **UI widgets data source customization**. An admin can easily customize a chart, a report or a widget data source by just editing the backing pipeline via a REST api.<br>
+For example a combo box currently displaying a limit of 5 countries stored in the DB, may need to display 10 countries filtered on different conditions
+  based on the client(multitenant app). By keeping the pipeline in the database, an admin user can easily change it to display 10 countries or the conditions.
 
 # Getting started in 3 easy steps
 1. [Configuration](#1-configuration)
@@ -50,7 +47,7 @@ Maven dependency:
 <dependency>
     <groupId>org.mongopipe</groupId>
     <artifactId>mongopipe-spring</artifactId>
-    <version>X.Y.Z</version> <!-- Get latest from Maven Central or https://mvnrepository.com/artifact/org.mongopipe/mongopipe-spring -->
+    <version>1.0.0</version> <!-- Get latest from Maven Central or https://mvnrepository.com/artifact/org.mongopipe/mongopipe-spring -->
 </dependency>
 ```
 Add 2 beans required for configuration and autostarting.
@@ -60,7 +57,7 @@ public MongoPipeConfig getMongoPipeConfig() {
   return MongoPipeConfig.builder()
       .uri("mongodb://...")
       .databaseName("database name")
-      //.mongoClient(optionallyForCustomConnection) // e.g. for TLS
+      //.mongoClient(optionallyForCustomConnection) // e.g. for TLS setup
       .build();
 }
 
@@ -74,7 +71,7 @@ public MongoPipeStarter getMongoPipeStarter(MongoPipeConfig mongoPipeConfig) {
 <dependency>
   <groupId>org.mongopipe</groupId>
   <artifactId>mongopipe-core</artifactId>
-  <version>X.Y.Z</version> <!-- Get latest from Maven Central or https://mvnrepository.com/artifact/org.mongopipe/mongopipe-core -->
+  <version>1.0.1</version> <!-- Get latest from Maven Central or https://mvnrepository.com/artifact/org.mongopipe/mongopipe-core -->
 </dependency>
 ```
 Manually register config.
@@ -82,7 +79,7 @@ Manually register config.
 Stores.registerConfig(MongoPipeConfig.builder()
   .uri("<mongo uri>")
   .databaseName("<database name>")
-  //.mongoClient(optionallyForCustomConnection)
+  //.mongoClient(optionallyForCustomConnection) // e.g. for TLS setup
   .build());
 ```
 
@@ -132,7 +129,7 @@ Stores.from(MyRestaurant.class)
 ```
 **NOTE**:
 * Internally a proxy store delegator is created for each @Store annotated interface and for each @PipelineRun annotation will execute the corresponding DB stored pipeline. 
-* The `@Store` class annotation is mandatory. The `@PipelineRun` annotation is optional and if missing will be defaulted to the method name. 
+* The `@Store` class annotation is mandatory. The `@PipelineRun` annotation is optional and if missing the pipeline id will be defaulted to the method name. 
 * For **generic running** usages like the ones in the Intro section, meaning **no** need for pipeline stores(`@Store` annotated), you can use the
    `Pipelines.getRunner().run` method.  More here: [Generic creation and running](#dynamic-creation-and-running-with-criterias)
    **You can use this behind a REST api to generically create and run pipelines**. <br>
@@ -145,13 +142,12 @@ Stores.from(MyRestaurant.class)
     
 
 # More on pipeline files
-* Pipeline files/sources end up (via migration) in the `pipeline_store` collection: ![db store](/docs/pipeline_store.png )
-* Once migrated in the database pipelines can be independently updated/created at runtime using the [PipelineStore](https://javadoc.io/static/org.mongopipe/mongopipe-core/1.0/index.html?org/mongopipe/core/store/PipelineStore.html) CRUD API.<br>
+* Pipeline files/sources are saved (via migration process) in the `pipeline_store` collection: ![db store](/docs/pipeline_store.png )
+* Once migrated in the database, pipelines can be independently updated/created at runtime using the [PipelineStore](https://javadoc.io/static/org.mongopipe/mongopipe-core/1.0/index.html?org/mongopipe/core/store/PipelineStore.html) CRUD API.<br>
   Future file updates to the pipeline file will be promoted to DB via automatic migration on startup.
 * The pipelines can be also **manually** created/updated using the [dynamic way](#dynamic-creation-and-running-with-criterias).
-* The json pipeline file although static is the input into the migration utility at process startup and thus seeded in the database. It can then be
-   updated at runtime via the PipelineStore API or the seed file can be manually modified and on next process startup it will be
-   automatically updated in the database by the migration process. More on [Migration](#migration).
+* The json pipeline file although static, it is consumed by the migration utility at process startup and then seeded in the database. After reaching the database it can then be independently updated at runtime via the `PipelineStore` API. <br> 
+ Future modifications to the seed file will be automatically propagated in the database by the migration process on the next process startup/restart. More on [Migration](#migration).
 * **The parameters form is `"${paramName}"`**. <br>
    Parameters inside the pipeline template **must** be strings (e.g. `"..": "${paramName}"`) in order to be valid JSON.
    On pipeline run the **actual parameters values can be of any type including complex types: lists, maps, pojos** as long as it can be
